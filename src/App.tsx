@@ -1,40 +1,62 @@
-import { useTheme } from './hooks/useTheme';
+import { useAudit } from '@/hooks/useAudit';
+import { useTheme } from '@/hooks/useTheme';
+import { TopNav } from '@/components/layout/TopNav';
+import { InputPanel } from '@/components/input/InputPanel';
+import { ResultsDashboard } from '@/components/layout/ResultsDashboard';
+import { SVGFilterDefs } from '@/components/emulation/SVGFilterDefs';
+import { EmulationWidget } from '@/components/emulation/EmulationWidget';
+import { EmulationProvider } from '@/context/EmulationContext';
 
 function App() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
+  const { viewState, auditResult, heatmapGrid, runAudit, reset } = useAudit();
 
   return (
-    <div
-      id="app-root"
-      className="min-h-screen bg-[var(--color-bg-base)] px-8 py-12 text-[var(--color-text-primary)]"
-    >
-      <div className="mx-auto max-w-md space-y-6 text-center">
-        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
-          AccessLens
-        </h1>
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          App shell ready for Phase 2
-        </p>
+    <EmulationProvider>
+      <div className="min-h-screen bg-[hsl(var(--color-bg-base))] text-[hsl(var(--color-text-primary))]" data-theme={theme}>
+        {/* SVG Filter Definitions - injected via portal */}
+        <SVGFilterDefs />
 
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-4 shadow-md">
-          <p className="mb-2 text-sm text-[var(--color-text-secondary)]">
-            Current theme: <strong>{theme}</strong>
-          </p>
-          <button
-            onClick={toggleTheme}
-            className="rounded-md bg-[var(--color-interactive)] px-4 py-2 text-[var(--color-text-inverse)] transition-colors hover:bg-[var(--color-interactive-hover)]"
-          >
-            Toggle Theme
-          </button>
-        </div>
+        {/* Top Navigation */}
+        <TopNav
+          viewState={viewState}
+          auditedUrl={auditResult?.auditedInput}
+          onNewScan={reset}
+        />
 
-        <div className="text-xs text-[var(--color-text-secondary)]">
-          <p>✓ Design tokens loaded</p>
-          <p>✓ TypeScript strict mode enabled</p>
-          <p>✓ ThemeContext initialized</p>
-        </div>
+        {/* Main Content Area */}
+        <main id="app-root" className="relative">
+          {viewState === 'idle' && (
+            <div className="px-6 py-12">
+              <InputPanel
+                onAnalyze={runAudit}
+                isLoading={false}
+                disabled={false}
+              />
+            </div>
+          )}
+
+          {viewState === 'loading' && (
+            <div className="px-6 py-12 opacity-50 pointer-events-none">
+              <InputPanel
+                onAnalyze={runAudit}
+                isLoading={true}
+                disabled={true}
+              />
+            </div>
+          )}
+
+          {viewState === 'results' && auditResult && heatmapGrid && (
+            <div className="px-6 py-8">
+              <ResultsDashboard payload={auditResult} heatmapGrid={heatmapGrid} />
+            </div>
+          )}
+        </main>
+
+        {/* Emulation Widget - outside #app-root so it's never filtered */}
+        <EmulationWidget />
       </div>
-    </div>
+    </EmulationProvider>
   );
 }
 

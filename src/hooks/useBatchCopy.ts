@@ -3,7 +3,7 @@ import type { AuditPayload } from '@/types/audit.types';
 import { generateBatchPrompt } from '@/lib/promptGenerator';
 
 interface UseBatchCopyReturn {
-  copy: () => Promise<void>;
+  copy: () => Promise<boolean>;
   copied: boolean;
   error: boolean;
   promptText: string;
@@ -18,7 +18,7 @@ export function useBatchCopy(payload: AuditPayload): UseBatchCopyReturn {
   const promptText = generateBatchPrompt(payload);
 
   const copy = useCallback(async () => {
-    if (!promptText) return;
+    if (!promptText) return false;
 
     setError(false);
 
@@ -26,8 +26,10 @@ export function useBatchCopy(payload: AuditPayload): UseBatchCopyReturn {
       await navigator.clipboard.writeText(promptText);
       setCopied(true);
       setTimeout(() => setCopied(false), COPY_TIMEOUT);
+      return true;
     } catch {
       setError(true);
+      return false;
     }
   }, [promptText]);
 

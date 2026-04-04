@@ -1,13 +1,5 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
-
-interface ThemeContextValue {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+import { useState, useEffect, type ReactNode } from 'react';
+import { ThemeContext, type Theme } from './theme-context';
 
 const STORAGE_KEY = 'accesslens-theme';
 
