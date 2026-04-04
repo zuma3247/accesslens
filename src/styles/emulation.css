@@ -1,0 +1,36 @@
+/* Macular degeneration simulation
+   Uses a fixed overlay on #app-root that blurs and darkens the center,
+   leaving the periphery clear — anatomically accurate to the condition. */
+
+#app-root.emulate-macular::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+
+  /* Blurred center region with dark gradient */
+  background: radial-gradient(
+    ellipse 28% 28% at 50% 50%,
+    oklch(5% 0 0 / 0.9) 0%,
+    oklch(5% 0 0 / 0.55) 25%,
+    transparent 55%
+  );
+
+  /* backdrop-filter blurs the content beneath the overlay */
+  backdrop-filter: blur(7px);
+
+  /* mask-image limits the blur effect to the center zone only */
+  mask-image: radial-gradient(
+    ellipse 32% 32% at 50% 50%,
+    black 0%,
+    black 25%,
+    transparent 58%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 32% 32% at 50% 50%,
+    black 0%,
+    black 25%,
+    transparent 58%
+  );
+}
