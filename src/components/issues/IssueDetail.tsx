@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react';
 import type { Issue } from '@/types/audit.types';
 import { SeverityBadge } from './SeverityBadge';
 import { ExternalLink } from 'lucide-react';
@@ -5,9 +6,17 @@ import { CopyFixPromptButton } from '../prompt/CopyFixPromptButton';
 
 interface IssueDetailProps {
   issue: Issue | null;
+  onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
 }
 
-export function IssueDetail({ issue }: IssueDetailProps) {
+export function IssueDetail({ issue, onOpenBeforeAfter }: IssueDetailProps) {
+  const beforeAfterButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpenBeforeAfter = useCallback(() => {
+    if (onOpenBeforeAfter && issue && beforeAfterButtonRef.current) {
+      onOpenBeforeAfter(issue, beforeAfterButtonRef.current);
+    }
+  }, [issue, onOpenBeforeAfter]);
   if (!issue) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center">
@@ -91,7 +100,9 @@ export function IssueDetail({ issue }: IssueDetailProps) {
 
         {issue.hasBeforeAfter && issue.beforeAfterType && (
           <button
+            ref={beforeAfterButtonRef}
             type="button"
+            onClick={handleOpenBeforeAfter}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] rounded-md"
           >
             View Before/After →

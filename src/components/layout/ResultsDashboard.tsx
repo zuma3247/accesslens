@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { AuditPayload, HeatmapGrid, Issue, HeatmapFilter } from '@/types/audit.types';
 import { useBatchCopy } from '@/hooks/useBatchCopy';
 import { ScoreRing } from '@/components/score/ScoreRing';
@@ -8,6 +8,7 @@ import { IssueCardList } from '@/components/issues/IssueCardList';
 import { IssueDetail } from '@/components/issues/IssueDetail';
 import { CopyAllCriticalButton } from '@/components/prompt/CopyAllCriticalButton';
 import { BatchPromptModal } from '@/components/prompt/BatchPromptModal';
+import { BeforeAfterPanel } from '@/components/before-after/BeforeAfterPanel';
 
 interface ResultsDashboardProps {
   payload: AuditPayload;
@@ -18,7 +19,40 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [heatmapFilter, setHeatmapFilter] = useState<HeatmapFilter | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [beforeAfterIssue, setBeforeAfterIssue] = useState<Issue | null>(null);
+  const [isBeforeAfterOpen, setIsBeforeAfterOpen] = useState(false);
+  const [beforeAfterTriggerElement, setBeforeAfterTriggerElement] = useState<HTMLElement | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
   const { promptText } = useBatchCopy(payload);
+
+  const handleOpenBeforeAfter = (issue: Issue, triggerElement?: HTMLElement) => {
+    // Clear any pending close timeout
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setBeforeAfterIssue(issue);
+    setIsBeforeAfterOpen(true);
+    if (triggerElement) {
+      setBeforeAfterTriggerElement(triggerElement);
+    }
+    // Also select the issue to keep right panel in sync
+    setSelectedIssue(issue);
+  };
+
+  const handleCloseBeforeAfter = () => {
+    setIsBeforeAfterOpen(false);
+    // Delay clearing beforeAfterIssue to allow exit animation (250ms)
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setBeforeAfterIssue(null);
+      closeTimeoutRef.current = null;
+    }, 250);
+    // Return focus to the trigger element immediately
+    if (beforeAfterTriggerElement) {
+      beforeAfterTriggerElement.focus();
+      setBeforeAfterTriggerElement(null);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -67,6 +101,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             onClearHeatmapFilter={() => setHeatmapFilter(null)}
             selectedIssue={selectedIssue}
             onSelectIssue={setSelectedIssue}
+            onOpenBeforeAfter={handleOpenBeforeAfter}
           />
         </div>
 
@@ -76,7 +111,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
               Issue Detail
             </h3>
-            <IssueDetail issue={selectedIssue} />
+            <IssueDetail issue={selectedIssue} onOpenBeforeAfter={handleOpenBeforeAfter} />
           </div>
         </div>
       </div>
@@ -87,6 +122,15 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         onClose={() => setIsBatchModalOpen(false)}
         promptText={promptText}
       />
+
+      {/* Before/After Panel */}
+      {beforeAfterIssue && (
+        <BeforeAfterPanel
+          issue={beforeAfterIssue}
+          isOpen={isBeforeAfterOpen}
+          onClose={handleCloseBeforeAfter}
+        />
+      )}
     </div>
   );
 }

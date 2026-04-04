@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import type { Issue } from '@/types/audit.types';
@@ -10,10 +10,18 @@ interface IssueCardProps {
   isExpanded: boolean;
   onToggle: () => void;
   isSelected?: boolean;
+  onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
 }
 
-export function IssueCard({ issue, isExpanded, onToggle, isSelected }: IssueCardProps) {
+export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBeforeAfter }: IssueCardProps) {
   const [showCodeExpanded, setShowCodeExpanded] = useState(false);
+  const beforeAfterButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpenBeforeAfter = useCallback(() => {
+    if (onOpenBeforeAfter && beforeAfterButtonRef.current) {
+      onOpenBeforeAfter(issue, beforeAfterButtonRef.current);
+    }
+  }, [issue, onOpenBeforeAfter]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -146,7 +154,9 @@ export function IssueCard({ issue, isExpanded, onToggle, isSelected }: IssueCard
               {/* Before/After Button */}
               {issue.hasBeforeAfter && issue.beforeAfterType && (
                 <button
+                  ref={beforeAfterButtonRef}
                   type="button"
+                  onClick={handleOpenBeforeAfter}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] rounded-md"
                 >
                   View Before/After →

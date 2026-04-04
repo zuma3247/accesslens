@@ -9,6 +9,7 @@ interface IssueCardListProps {
   onClearHeatmapFilter: () => void;
   selectedIssue: Issue | null;
   onSelectIssue: (issue: Issue | null) => void;
+  onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
 }
 
 export function IssueCardList({
@@ -17,6 +18,7 @@ export function IssueCardList({
   onClearHeatmapFilter,
   selectedIssue,
   onSelectIssue,
+  onOpenBeforeAfter,
 }: IssueCardListProps) {
   const [severityFilter, setSeverityFilter] = useState<IssueSeverity | null>(null);
   const [principleFilter, setPrincipleFilter] = useState<WcagPrinciple | null>(null);
@@ -114,6 +116,7 @@ export function IssueCardList({
               isExpanded={expandedIssueId === issue.id}
               onToggle={() => handleToggleExpand(issue)}
               isSelected={selectedIssue?.id === issue.id}
+              onOpenBeforeAfter={onOpenBeforeAfter}
             />
           </div>
         ))}
