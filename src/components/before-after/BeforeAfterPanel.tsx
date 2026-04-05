@@ -137,7 +137,7 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
               style={{ width: `${leftPanelWidth}%` }}
               className="p-6 border-r border-[hsl(var(--color-border))] transition-all duration-150"
             >
-              <h3 className="text-sm font-medium uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+              <h3 className="text-sm font-medium uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
                 Current
               </h3>
               <div className="bg-[hsl(var(--color-bg-elevated))] rounded-lg p-4">
@@ -167,7 +167,7 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
               style={{ width: `${100 - leftPanelWidth}%` }}
               className="p-6 transition-all duration-150"
             >
-              <h3 className="text-sm font-medium uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+              <h3 className="text-sm font-medium uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
                 Accessible
               </h3>
               <div className="bg-[hsl(var(--color-bg-elevated))] rounded-lg p-4">

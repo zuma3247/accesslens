@@ -65,7 +65,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
           </div>
           
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Level Breakdown
             </h3>
             <LevelBreakdown breakdown={payload.levelBreakdown} />
@@ -76,7 +76,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         <div className="lg:col-span-6 space-y-6">
           {/* Heatmap */}
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Issue Heatmap
             </h3>
             <IssueHeatmap
@@ -114,7 +114,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         {/* Right Panel - Issue Detail */}
         <div className="lg:col-span-3">
           <div className="sticky top-4 p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl min-h-[400px]">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Issue Detail
             </h3>
             <IssueDetail issue={selectedIssue} onOpenBeforeAfter={handleOpenBeforeAfter} />

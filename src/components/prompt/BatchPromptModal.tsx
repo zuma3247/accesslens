@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { X, ClipboardCopy } from 'lucide-react';
 
 interface BatchPromptModalProps {
@@ -9,6 +9,40 @@ interface BatchPromptModalProps {
 
 export function BatchPromptModal({ isOpen, onClose, promptText }: BatchPromptModalProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus trap helper
+  const getFocusableElements = useCallback(() => {
+    if (!modalRef.current) return [];
+    const focusable = modalRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    return Array.from(focusable) as HTMLElement[];
+  }, []);
+
+  // Handle tab key for focus trap
+  const handleTabKey = useCallback((e: KeyboardEvent) => {
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey) {
+      // Shift+Tab - move backward
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      // Tab - move forward
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, [getFocusableElements]);
 
   useEffect(() => {
     if (isOpen && textareaRef.current) {
@@ -22,18 +56,20 @@ export function BatchPromptModal({ isOpen, onClose, promptText }: BatchPromptMod
   }, [isOpen]);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
+      } else if (e.key === 'Tab' && isOpen) {
+        handleTabKey(e);
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleKeyDown);
     }
 
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, handleTabKey]);
 
   const handleRetryCopy = () => {
     if (textareaRef.current) {
@@ -54,6 +90,7 @@ export function BatchPromptModal({ isOpen, onClose, promptText }: BatchPromptMod
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleOverlayClick}
       role="dialog"
@@ -67,6 +104,7 @@ export function BatchPromptModal({ isOpen, onClose, promptText }: BatchPromptMod
             Your Critical Fixes Prompt
           </h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="p-1.5 text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] hover:bg-[hsl(var(--color-bg-surface))] rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"

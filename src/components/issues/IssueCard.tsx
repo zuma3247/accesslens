@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import type { Issue } from '@/types/audit.types';
 import { SeverityBadge } from './SeverityBadge';
@@ -16,6 +16,7 @@ interface IssueCardProps {
 export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBeforeAfter }: IssueCardProps) {
   const [showCodeExpanded, setShowCodeExpanded] = useState(false);
   const beforeAfterButtonRef = useRef<HTMLButtonElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleOpenBeforeAfter = useCallback(() => {
     if (onOpenBeforeAfter && beforeAfterButtonRef.current) {
@@ -86,7 +87,7 @@ export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBefor
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
           className="border-t border-[hsl(var(--color-border))]"
         >
           <div className="p-4 space-y-4">

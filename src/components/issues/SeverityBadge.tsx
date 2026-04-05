@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils';
 import type { IssueSeverity } from '@/types/audit.types';
 
 const severityBadgeVariants = cva(
-  'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium uppercase tracking-wide rounded-sm',
+  'inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium uppercase tracking-[0.08em] rounded-sm',
   {
     variants: {
       severity: {
-        critical: 'bg-[hsl(var(--severity-critical-bg))] text-[hsl(var(--severity-critical-text))]',
-        serious: 'bg-[hsl(var(--severity-serious-bg))] text-[hsl(var(--severity-serious-text))]',
-        moderate: 'bg-[hsl(var(--severity-moderate-bg))] text-[hsl(var(--severity-moderate-text))]',
-        minor: 'bg-[hsl(var(--severity-minor-bg))] text-[hsl(var(--severity-minor-text))]',
+        critical: 'bg-[hsl(var(--severity-critical-bg))] text-[hsl(var(--severity-critical-text))] tracking-[0.08em]',
+        serious: 'bg-[hsl(var(--severity-serious-bg))] text-[hsl(var(--severity-serious-text))] tracking-[0.08em]',
+        moderate: 'bg-[hsl(var(--severity-moderate-bg))] text-[hsl(var(--severity-moderate-text))] tracking-[0.08em]',
+        minor: 'bg-[hsl(var(--severity-minor-bg))] text-[hsl(var(--severity-minor-text))] tracking-[0.08em]',
       },
     },
     defaultVariants: {

@@ -35,7 +35,7 @@ export function HeatmapSkeleton({ className = '' }: HeatmapSkeletonProps) {
               <th
                 key={col}
                 scope="col"
-                className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--color-text-secondary))] pb-2 text-center"
+                className="text-xs font-medium uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] pb-2 text-center"
               >
                 {col}
               </th>
@@ -47,7 +47,7 @@ export function HeatmapSkeleton({ className = '' }: HeatmapSkeletonProps) {
             <tr key={row}>
               <th
                 scope="row"
-                className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--color-text-secondary))] pr-3 text-right"
+                className="text-xs font-medium uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] pr-3 text-right"
               >
                 {row}
               </th>

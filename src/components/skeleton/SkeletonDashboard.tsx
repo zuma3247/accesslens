@@ -20,7 +20,7 @@ export function SkeletonDashboard() {
           </div>
 
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Level Breakdown
             </h3>
             {/* Level breakdown skeleton */}
@@ -44,7 +44,7 @@ export function SkeletonDashboard() {
         <div className="lg:col-span-6 space-y-6">
           {/* Heatmap */}
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Issue Heatmap
             </h3>
             <HeatmapSkeleton />
@@ -72,7 +72,7 @@ export function SkeletonDashboard() {
         {/* Right Panel - Issue Detail */}
         <div className="lg:col-span-3">
           <div className="sticky top-4 p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl min-h-[400px]">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--color-text-secondary))] mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
               Issue Detail
             </h3>
             {/* Empty state placeholder */}

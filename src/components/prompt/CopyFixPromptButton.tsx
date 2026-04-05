@@ -23,7 +23,7 @@ export function CopyFixPromptButton({ issue }: CopyFixPromptButtonProps) {
             : 'bg-[hsl(var(--color-copy-btn-bg))] text-[hsl(var(--color-text-primary))] border border-[hsl(var(--color-border))] hover:bg-[hsl(var(--color-copy-btn-hover))]'
           }
         `}
-        aria-label={`Copy accessibility fix prompt for ${issue.wcagCriterion} ${issue.wcagCriterionName} to clipboard`}
+        title={copied ? 'Copied to clipboard!' : 'Copy accessibility fix prompt to clipboard'}
       >
         <span aria-live="polite" className="inline-flex items-center gap-1.5">
           <span className="sr-only">{copied ? 'Copied!' : 'Copy Fix Prompt'}</span>

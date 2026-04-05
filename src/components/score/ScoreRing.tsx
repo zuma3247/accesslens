@@ -120,7 +120,7 @@ export function ScoreRing({ score, grade, isFallback }: ScoreRingProps) {
       </svg>
       
       {/* Target label */}
-      <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] tracking-wide uppercase">
+      <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] tracking-[0.08em] uppercase">
         WCAG 2.2 Target: AA
       </p>
       

@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Eye, X } from 'lucide-react';
 import { useEmulation } from '@/hooks/useEmulation';
 import { IMPAIRMENT_FILTERS } from '@/data/impairmentFilters';
@@ -11,26 +11,77 @@ export function EmulationWidget() {
   const [isExpanded, setIsExpanded] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const firstButtonRef = useRef<HTMLButtonElement>(null);
+  const lastFocusedElement = useRef<HTMLElement | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const activeFilter = IMPAIRMENT_FILTERS.find(f => f.key === activeImpairment);
   const isFilterActive = activeImpairment !== 'none';
 
-  // Handle escape key to close widget
+  // Save the element that triggered the widget to open
+  const handleOpen = () => {
+    lastFocusedElement.current = document.activeElement as HTMLElement;
+    setIsExpanded(true);
+  };
+
+  const handleClose = () => {
+    setIsExpanded(false);
+    // Return focus to the trigger element
+    setTimeout(() => {
+      lastFocusedElement.current?.focus();
+    }, 0);
+  };
+
+  // Focus trap helper
+  const getFocusableElements = useCallback(() => {
+    if (!widgetRef.current) return [];
+    const focusable = widgetRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    return Array.from(focusable) as HTMLElement[];
+  }, []);
+
+  // Handle tab key for focus trap
+  const handleTabKey = useCallback((e: KeyboardEvent) => {
+    if (!isExpanded) return;
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, [isExpanded, getFocusableElements]);
+
+  // Handle escape key to close widget and manage focus trap
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape' && isExpanded) {
-        setIsExpanded(false);
+        handleClose();
+      } else if (event.key === 'Tab' && isExpanded) {
+        handleTabKey(event);
       }
     }
 
     if (isExpanded) {
       document.addEventListener('keydown', handleKeyDown);
       // Focus first button when expanded
-      firstButtonRef.current?.focus();
+      setTimeout(() => {
+        firstButtonRef.current?.focus();
+      }, 50);
     }
 
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isExpanded]);
+  }, [isExpanded, handleTabKey]);
 
   const handleImpairmentSelect = (key: string) => {
     setActiveImpairment(key as typeof activeImpairment);
@@ -48,7 +99,7 @@ export function EmulationWidget() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.15, ease: 'easeOut' }}
             className="w-[280px] bg-[hsl(var(--color-bg-elevated))] backdrop-blur-xl border border-[hsl(var(--color-border))] rounded-xl shadow-xl"
           >
             {/* Header */}
@@ -61,7 +112,7 @@ export function EmulationWidget() {
               </div>
               <button
                 type="button"
-                onClick={() => setIsExpanded(false)}
+                onClick={handleClose}
                 aria-label="Close vision emulation panel"
                 className="p-1 rounded-md hover:bg-[hsl(var(--color-bg-surface))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
               >
@@ -99,8 +150,8 @@ export function EmulationWidget() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.12, ease: 'easeIn' }}
-            onClick={() => setIsExpanded(true)}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.12, ease: 'easeIn' }}
+            onClick={handleOpen}
             className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-full shadow-md hover:shadow-lg transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
             aria-label="Open vision emulation panel"
           >
