@@ -8,6 +8,7 @@ import type { AxeResults } from 'axe-core';
  */
 function populateAuditDocument(auditDocument: Document, htmlString: string, cssString?: string): void {
   const parsed = new DOMParser().parseFromString(htmlString, 'text/html');
+  parsed.querySelectorAll('script').forEach((s) => s.remove());
 
   auditDocument.open();
   auditDocument.write('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body></body></html>');
@@ -46,7 +47,10 @@ function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: 
   script.textContent = axe.source;
   auditDocument.head.appendChild(script);
 
-  return iframeWindow.axe ?? axe;
+  if (!iframeWindow.axe) {
+    throw new Error('Failed to inject axe-core into the audit iframe.');
+  }
+  return iframeWindow.axe;
 }
 
 export async function runLiveAxeAudit(htmlString: string, cssString?: string): Promise<AxeResults> {
@@ -61,6 +65,9 @@ export async function runLiveAxeAudit(htmlString: string, cssString?: string): P
     }
 
     populateAuditDocument(auditDocument, htmlString, cssString);
+    if (!auditDocument.documentElement || !auditDocument.body) {
+      throw new Error('Audit iframe document was corrupted during HTML population.');
+    }
     const iframeAxe = injectAxeIntoIframe(iframeWindow, auditDocument);
 
     const results = await iframeAxe.run(auditDocument, {
