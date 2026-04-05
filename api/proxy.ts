@@ -1,8 +1,7 @@
-type QueryValue = string | string[] | undefined;
-
 interface VercelRequestLike {
   method?: string;
-  query: Record<string, QueryValue>;
+  url?: string;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 interface VercelResponseLike {
@@ -24,10 +23,26 @@ const PRIVATE_IP_PATTERNS = [
   /^fe80:/,
 ];
 
-function getFirstQueryValue(value: QueryValue): string | null {
+function getHeaderValue(
+  headers: Record<string, string | string[] | undefined> | undefined,
+  key: string
+): string | null {
+  const value = headers?.[key];
   if (typeof value === 'string') return value;
   if (Array.isArray(value) && value.length > 0) return value[0];
   return null;
+}
+
+function getRequestUrl(req: VercelRequestLike): URL | null {
+  if (!req.url) return null;
+
+  try {
+    return new URL(req.url);
+  } catch {
+    const host = getHeaderValue(req.headers, 'host') ?? 'localhost';
+    const protocol = getHeaderValue(req.headers, 'x-forwarded-proto') ?? 'https';
+    return new URL(req.url, `${protocol}://${host}`);
+  }
 }
 
 function setCorsHeaders(res: VercelResponseLike): void {
@@ -70,7 +85,8 @@ export default async function handler(req: VercelRequestLike, res: VercelRespons
     return;
   }
 
-  const rawUrl = getFirstQueryValue(req.query.url);
+  const requestUrl = getRequestUrl(req);
+  const rawUrl = requestUrl?.searchParams.get('url') ?? null;
   if (!rawUrl) {
     res.status(400).json({ error: 'Missing url parameter' });
     return;
