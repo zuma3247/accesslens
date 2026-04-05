@@ -10,11 +10,14 @@ interface CopyFixPromptButtonProps {
 export function CopyFixPromptButton({ issue }: CopyFixPromptButtonProps) {
   const { copy, copied, error } = useCopyPrompt(issue);
 
+  const copyLabel = `Copy fix prompt for ${issue.wcagCriterion} ${issue.wcagCriterionName} to clipboard`;
+
   return (
     <div className="space-y-2">
       <button
         type="button"
         onClick={copy}
+        aria-label={copied ? 'Copied' : copyLabel}
         className={`
           inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md
           transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]
@@ -23,10 +26,9 @@ export function CopyFixPromptButton({ issue }: CopyFixPromptButtonProps) {
             : 'bg-[hsl(var(--color-copy-btn-bg))] text-[hsl(var(--color-text-primary))] border border-[hsl(var(--color-border))] hover:bg-[hsl(var(--color-copy-btn-hover))]'
           }
         `}
-        title={copied ? 'Copied to clipboard!' : 'Copy accessibility fix prompt to clipboard'}
+        title={copied ? 'Copied to clipboard!' : copyLabel}
       >
         <span aria-live="polite" className="inline-flex items-center gap-1.5">
-          <span className="sr-only">{copied ? 'Copied!' : 'Copy Fix Prompt'}</span>
           {copied ? (
             <>
               <Check className="w-4 h-4" aria-hidden="true" />

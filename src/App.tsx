@@ -10,7 +10,7 @@ import { EmulationProvider } from '@/context/EmulationContext';
 
 function App() {
   const { theme } = useTheme();
-  const { viewState, auditResult, heatmapGrid, runAudit, reset } = useAudit();
+  const { viewState, auditResult, heatmapGrid, error, runAudit, reset } = useAudit();
 
   const handleSkipToMain = () => {
     const mainContent = document.getElementById('app-root');
@@ -41,19 +41,32 @@ function App() {
 
         {/* Main Content Area */}
         <main id="app-root" tabIndex={-1} className="relative" role="main" aria-label="Accessibility audit results">
-          {viewState === 'idle' && (
-            <div className="px-6 py-12">
+          {(viewState === 'idle' || viewState === 'loading') && (
+            <div className="px-6 py-12 space-y-8">
+              {error && (
+                <div
+                  className="max-w-2xl mx-auto rounded-lg border border-[hsl(var(--color-error))] bg-[hsl(var(--color-bg-surface))] p-4"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  <p className="text-sm font-medium text-[hsl(var(--color-error))] mb-3">{error}</p>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="px-4 py-2 text-sm font-medium rounded-md bg-[hsl(var(--indigo-600))] text-[hsl(var(--slate-50))] hover:bg-[hsl(var(--indigo-700))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
+
               <InputPanel
                 onAnalyze={runAudit}
-                isLoading={false}
-                disabled={false}
+                isLoading={viewState === 'loading'}
+                disabled={viewState === 'loading'}
               />
-            </div>
-          )}
 
-          {viewState === 'loading' && (
-            <div className="px-6 py-8">
-              <SkeletonDashboard />
+              {viewState === 'loading' && <SkeletonDashboard />}
             </div>
           )}
 

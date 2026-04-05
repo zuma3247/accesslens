@@ -1,6 +1,5 @@
 import { createElement } from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ProgressMessages } from '@/components/skeleton/ProgressMessages';
 import { SkeletonDashboard } from '@/components/skeleton/SkeletonDashboard';
 

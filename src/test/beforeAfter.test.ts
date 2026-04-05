@@ -1,5 +1,4 @@
 // Vitest tests for Before/After functionality
-import { describe, it, expect } from 'vitest';
 import { getDemoContent } from '@/lib/beforeAfterContent';
 import type { Issue } from '@/types/audit.types';
 

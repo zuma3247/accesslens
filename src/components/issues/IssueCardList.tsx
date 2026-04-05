@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Issue, IssueSeverity, WcagPrinciple, SortMode, HeatmapFilter } from '@/types/audit.types';
 import { IssueCard } from './IssueCard';
 import { FilterBar } from './FilterBar';
@@ -24,6 +24,11 @@ export function IssueCardList({
   const [principleFilter, setPrincipleFilter] = useState<WcagPrinciple | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('severity');
   const [expandedIssueId, setExpandedIssueId] = useState<string | null>(null);
+  const expandedIssueIdRef = useRef<string | null>(expandedIssueId);
+
+  useEffect(() => {
+    expandedIssueIdRef.current = expandedIssueId;
+  }, [expandedIssueId]);
 
   // Combine all filters
   const filteredIssues = useMemo(() => {
@@ -67,14 +72,16 @@ export function IssueCardList({
     return result;
   }, [issues, heatmapFilter, severityFilter, principleFilter, sortMode]);
 
-  const handleToggleExpand = useCallback((issue: Issue) => {
-    setExpandedIssueId(prev => {
-      const newId = prev === issue.id ? null : issue.id;
-      // Also update selected issue
-      onSelectIssue(newId === issue.id ? issue : null);
-      return newId;
-    });
-  }, [onSelectIssue]);
+  const handleToggleExpand = useCallback(
+    (issue: Issue) => {
+      const prev = expandedIssueIdRef.current;
+      const nextId = prev === issue.id ? null : issue.id;
+      expandedIssueIdRef.current = nextId;
+      setExpandedIssueId(nextId);
+      onSelectIssue(nextId === issue.id ? issue : null);
+    },
+    [onSelectIssue],
+  );
 
   return (
     <div className="space-y-4">

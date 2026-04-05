@@ -82,7 +82,9 @@ function calculateLevelBreakdownFromAxe(
   issues: Issue[],
   passes: Result[]
 ): LevelBreakdown {
-  // Build a map of all criteria and their status
+  // One row per WCAG criterion string: multiple axe violations that map to the same criterion
+  // (e.g. two color-contrast rules for 1.4.3) collapse to a single pass/fail — intentional for
+  // criterion-level scoring. Per-issue element counts remain on each Issue.affectedCount.
   const criteriaStatus = new Map<
     string,
     { level: WcagLevel; passing: boolean; principle: WcagPrinciple }

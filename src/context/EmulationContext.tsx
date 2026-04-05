@@ -12,6 +12,7 @@ const APP_ROOT_ID = 'app-root';
 export function EmulationProvider({ children }: EmulationProviderProps) {
   const [activeImpairment, setActiveImpairment] = useState<ImpairmentKey>('none');
   const ariaLiveRef = useRef<HTMLDivElement>(null);
+  const isFirstRenderRef = useRef(true);
 
   useEffect(() => {
     const appRoot = document.getElementById(APP_ROOT_ID);
@@ -27,15 +28,20 @@ export function EmulationProvider({ children }: EmulationProviderProps) {
       appRoot.style.filter = `url(#filter-${activeImpairment})`;
     }
 
-    // Announce change to screen readers with human-readable name and description
+    // Announce changes only after mount; skip "Vision emulation disabled" on first paint when still 'none'
     if (ariaLiveRef.current) {
-      if (activeImpairment === 'none') {
-        ariaLiveRef.current.textContent = 'Vision emulation disabled.';
+      if (isFirstRenderRef.current && activeImpairment === 'none') {
+        isFirstRenderRef.current = false;
       } else {
-        const filter = IMPAIRMENT_FILTERS.find((f) => f.key === activeImpairment);
-        const label = filter?.label ?? activeImpairment;
-        const desc = filter?.description ? ` ${filter.description}` : '';
-        ariaLiveRef.current.textContent = `Now simulating ${label}.${desc}`;
+        isFirstRenderRef.current = false;
+        if (activeImpairment === 'none') {
+          ariaLiveRef.current.textContent = 'Vision emulation disabled.';
+        } else {
+          const filter = IMPAIRMENT_FILTERS.find((f) => f.key === activeImpairment);
+          const label = filter?.label ?? activeImpairment;
+          const desc = filter?.description ? ` ${filter.description}` : '';
+          ariaLiveRef.current.textContent = `Now simulating ${label}.${desc}`;
+        }
       }
     }
   }, [activeImpairment]);
