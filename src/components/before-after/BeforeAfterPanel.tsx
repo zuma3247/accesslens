@@ -20,6 +20,8 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   // Detect reduced motion preference
   useEffect(() => {
@@ -81,6 +83,60 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
     }
   }, [onClose]);
 
+  // Focus trap helper
+  const getFocusableElements = useCallback(() => {
+    if (!panelRef.current) return [];
+    const focusable = panelRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    return Array.from(focusable) as HTMLElement[];
+  }, []);
+
+  // Handle tab key for focus trap
+  const handleTabKey = useCallback((e: KeyboardEvent) => {
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey) {
+      // Shift+Tab - move backward
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      // Tab - move forward
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }, [getFocusableElements]);
+
+  // Handle keyboard events for panel (Escape + Tab trap)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'Tab' && isOpen) {
+        handleTabKey(e);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Focus close button when panel opens
+      setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 50);
+    }
+
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, handleTabKey]);
+
   if (!demoContent) {
     return null;
   }
@@ -102,6 +158,7 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={panelRef}
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
@@ -121,6 +178,7 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
               Before/After: {issue.wcagCriterion} {issue.wcagCriterionName}
             </h2>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={onClose}
               className="p-2 rounded-md hover:bg-[hsl(var(--color-bg-elevated))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
