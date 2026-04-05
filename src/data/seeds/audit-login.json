@@ -19,6 +19,7 @@
   "issues": [
     {
       "id": "touch-target-size",
+      "ruleId": "touch-target-size",
       "wcagCriterion": "2.5.8",
       "wcagCriterionName": "Target Size (Minimum)",
       "wcagLevel": "AA",
@@ -35,6 +36,7 @@
     },
     {
       "id": "color-contrast",
+      "ruleId": "color-contrast",
       "wcagCriterion": "1.4.3",
       "wcagCriterionName": "Contrast (Minimum)",
       "wcagLevel": "AA",
@@ -51,6 +53,7 @@
     },
     {
       "id": "error-suggestion",
+      "ruleId": "error-suggestion",
       "wcagCriterion": "3.3.3",
       "wcagCriterionName": "Error Suggestion",
       "wcagLevel": "AA",
@@ -66,6 +69,7 @@
     },
     {
       "id": "focus-visible",
+      "ruleId": "focus-visible",
       "wcagCriterion": "2.4.7",
       "wcagCriterionName": "Focus Visible",
       "wcagLevel": "AA",
@@ -81,6 +85,7 @@
     },
     {
       "id": "aria-describedby",
+      "ruleId": "aria-describedby",
       "wcagCriterion": "1.3.1",
       "wcagCriterionName": "Info and Relationships",
       "wcagLevel": "A",

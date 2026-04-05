@@ -1,11 +1,13 @@
-import type { IssueSeverity, WcagPrinciple, SortMode } from '@/types/audit.types';
+import type { IssueSeverity, WcagPrinciple, SortMode, ConfidenceLevel } from '@/types/audit.types';
 
 interface FilterBarProps {
   severityFilter: IssueSeverity | null;
   principleFilter: WcagPrinciple | null;
+  confidenceFilter: ConfidenceLevel | null;
   sortMode: SortMode;
   onSeverityChange: (severity: IssueSeverity | null) => void;
   onPrincipleChange: (principle: WcagPrinciple | null) => void;
+  onConfidenceChange: (confidence: ConfidenceLevel | null) => void;
   onSortChange: (mode: SortMode) => void;
   filteredCount: number;
   totalCount: number;
@@ -27,6 +29,13 @@ const principles: { value: WcagPrinciple | null; label: string }[] = [
   { value: 'robust', label: 'Robust' },
 ];
 
+const confidenceLevels: { value: ConfidenceLevel | null; label: string }[] = [
+  { value: null, label: 'All Confidence' },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'likely', label: 'Likely' },
+  { value: 'review', label: 'Needs Review' },
+];
+
 const sortLabels: Record<SortMode, string> = {
   severity: 'Severity ↓',
   criterion: 'Criterion #',
@@ -38,9 +47,11 @@ const sortCycle: SortMode[] = ['severity', 'criterion', 'count'];
 export function FilterBar({
   severityFilter,
   principleFilter,
+  confidenceFilter,
   sortMode,
   onSeverityChange,
   onPrincipleChange,
+  onConfidenceChange,
   onSortChange,
   filteredCount,
   totalCount,
@@ -54,10 +65,11 @@ export function FilterBar({
   const handleClearAll = () => {
     onSeverityChange(null);
     onPrincipleChange(null);
+    onConfidenceChange(null);
     onSortChange('severity');
   };
 
-  const hasActiveFilters = severityFilter !== null || principleFilter !== null;
+  const hasActiveFilters = severityFilter !== null || principleFilter !== null || confidenceFilter !== null;
 
   return (
     <div className="flex flex-wrap items-center gap-3 p-3 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-lg">
@@ -92,6 +104,25 @@ export function FilterBar({
           className="px-2 py-1 text-sm bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))]"
         >
           {principles.map(({ value, label }) => (
+            <option key={label} value={value ?? ''}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Confidence Select */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="confidence-filter" className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
+          Confidence:
+        </label>
+        <select
+          id="confidence-filter"
+          value={confidenceFilter ?? ''}
+          onChange={(e) => onConfidenceChange(e.target.value ? (e.target.value as ConfidenceLevel) : null)}
+          className="px-2 py-1 text-sm bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))]"
+        >
+          {confidenceLevels.map(({ value, label }) => (
             <option key={label} value={value ?? ''}>
               {label}
             </option>

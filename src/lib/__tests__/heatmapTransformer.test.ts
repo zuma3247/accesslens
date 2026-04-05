@@ -29,6 +29,7 @@ describe('transformToHeatmap', () => {
     const issues: Issue[] = [
       {
         id: 'test-1',
+        ruleId: 'test-rule',
         wcagCriterion: '1.1.1',
         wcagCriterionName: 'Non-text Content',
         wcagLevel: 'A',
@@ -57,6 +58,7 @@ describe('transformToHeatmap', () => {
     const issues: Issue[] = [
       {
         id: 'test-1',
+        ruleId: 'test-rule',
         wcagCriterion: '1.1.1',
         wcagCriterionName: 'Non-text Content',
         wcagLevel: 'A',
@@ -72,6 +74,7 @@ describe('transformToHeatmap', () => {
       },
       {
         id: 'test-2',
+        ruleId: 'test-rule',
         wcagCriterion: '1.4.3',
         wcagCriterionName: 'Contrast',
         wcagLevel: 'AA',
@@ -94,6 +97,7 @@ describe('transformToHeatmap', () => {
     const issues: Issue[] = [
       {
         id: 'small-issue',
+        ruleId: 'test-rule',
         wcagCriterion: '1.1.1',
         wcagCriterionName: 'Small Issue',
         wcagLevel: 'A',
@@ -109,6 +113,7 @@ describe('transformToHeatmap', () => {
       },
       {
         id: 'big-issue',
+        ruleId: 'test-rule',
         wcagCriterion: '1.4.3',
         wcagCriterionName: 'Big Issue',
         wcagLevel: 'AA',
@@ -175,6 +180,7 @@ function createIssue(
 ): Issue {
   return {
     id,
+    ruleId: 'test-rule',
     wcagCriterion: '1.1.1',
     wcagCriterionName: 'Test',
     wcagLevel: 'A',

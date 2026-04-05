@@ -9,9 +9,16 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
   const delay = Math.random() * 600 + 800; // 800–1400ms
   await sleep(delay);
 
+  if (input.mode === 'alt-text') {
+    throw new Error('Alt-text analysis is not yet available. Please use URL or HTML Snippet mode.');
+  }
+
   if (input.mode === 'html') {
     const axeResults = await runLiveAxeAudit(input.value);
-    return mapAxeResultToPayload(axeResults, input.value);
+    return {
+      ...mapAxeResultToPayload(axeResults, input.value),
+      scanMode: 'html',
+    };
   }
 
   // URL mode: load matching seed file
@@ -24,5 +31,6 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
     auditedInput: input.value,
     auditedAt: new Date().toISOString(),
     isFallback,
+    scanMode: 'url',
   };
 }

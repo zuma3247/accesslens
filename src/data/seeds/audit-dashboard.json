@@ -19,6 +19,7 @@
   "issues": [
     {
       "id": "color-contrast",
+      "ruleId": "color-contrast",
       "wcagCriterion": "1.4.3",
       "wcagCriterionName": "Contrast (Minimum)",
       "wcagLevel": "AA",
@@ -35,6 +36,7 @@
     },
     {
       "id": "image-alt",
+      "ruleId": "image-alt",
       "wcagCriterion": "1.1.1",
       "wcagCriterionName": "Non-text Content",
       "wcagLevel": "A",
@@ -51,7 +53,8 @@
     },
     {
       "id": "link-in-name",
-      "wcagCriterion": "2.5.3",
+      "ruleId": "link-name",
+      "wcagCriterion": "2.4.4",
       "wcagCriterionName": "Label in Name",
       "wcagLevel": "A",
       "principle": "operable",
@@ -65,8 +68,9 @@
       "hasBeforeAfter": false
     },
     {
-      "id": "focus-order",
-      "wcagCriterion": "2.4.3",
+      "id": "focus-order-semantics",
+      "ruleId": "focus-order-semantics",
+      "wcagCriterion": "1.3.2",
       "wcagCriterionName": "Focus Order",
       "wcagLevel": "A",
       "principle": "operable",
@@ -81,6 +85,7 @@
     },
     {
       "id": "aria-hidden-focus",
+      "ruleId": "aria-hidden-focus",
       "wcagCriterion": "4.1.3",
       "wcagCriterionName": "Status Messages",
       "wcagLevel": "AA",
@@ -96,6 +101,7 @@
     },
     {
       "id": "touch-target-size",
+      "ruleId": "target-size",
       "wcagCriterion": "2.5.8",
       "wcagCriterionName": "Target Size (Minimum)",
       "wcagLevel": "AA",
@@ -111,8 +117,9 @@
       "beforeAfterType": "touch-target"
     },
     {
-      "id": "keyboard-trap",
-      "wcagCriterion": "2.1.2",
+      "id": "keyboard",
+      "ruleId": "keyboard",
+      "wcagCriterion": "2.1.1",
       "wcagCriterionName": "No Keyboard Trap",
       "wcagLevel": "A",
       "principle": "operable",
@@ -127,6 +134,7 @@
     },
     {
       "id": "input-purpose",
+      "ruleId": "input-purpose",
       "wcagCriterion": "1.3.5",
       "wcagCriterionName": "Identify Input Purpose",
       "wcagLevel": "AA",
@@ -142,6 +150,7 @@
     },
     {
       "id": "color-use",
+      "ruleId": "color-use",
       "wcagCriterion": "1.4.1",
       "wcagCriterionName": "Use of Color",
       "wcagLevel": "A",
@@ -157,6 +166,7 @@
     },
     {
       "id": "page-title",
+      "ruleId": "page-title",
       "wcagCriterion": "2.4.2",
       "wcagCriterionName": "Page Titled",
       "wcagLevel": "A",
@@ -172,6 +182,7 @@
     },
     {
       "id": "error-suggestion",
+      "ruleId": "error-suggestion",
       "wcagCriterion": "3.3.3",
       "wcagCriterionName": "Error Suggestion",
       "wcagLevel": "AA",
@@ -187,6 +198,7 @@
     },
     {
       "id": "visible-label",
+      "ruleId": "visible-label",
       "wcagCriterion": "3.3.2",
       "wcagCriterionName": "Labels or Instructions",
       "wcagLevel": "A",
@@ -202,6 +214,7 @@
     },
     {
       "id": "redundant-entry",
+      "ruleId": "redundant-entry",
       "wcagCriterion": "3.3.7",
       "wcagCriterionName": "Redundant Entry",
       "wcagLevel": "A",
@@ -217,6 +230,7 @@
     },
     {
       "id": "language-missing",
+      "ruleId": "language-missing",
       "wcagCriterion": "3.1.1",
       "wcagCriterionName": "Language of Page",
       "wcagLevel": "A",
@@ -232,6 +246,7 @@
     },
     {
       "id": "aria-roles",
+      "ruleId": "aria-roles",
       "wcagCriterion": "4.1.2",
       "wcagCriterionName": "Name, Role, Value",
       "wcagLevel": "A",
@@ -247,6 +262,7 @@
     },
     {
       "id": "resize-text",
+      "ruleId": "resize-text",
       "wcagCriterion": "1.4.4",
       "wcagCriterionName": "Resize Text",
       "wcagLevel": "AA",
@@ -262,6 +278,7 @@
     },
     {
       "id": "parsing",
+      "ruleId": "parsing",
       "wcagCriterion": "4.1.1",
       "wcagCriterionName": "Parsing",
       "wcagLevel": "A",
@@ -277,6 +294,7 @@
     },
     {
       "id": "info-relationships",
+      "ruleId": "info-relationships",
       "wcagCriterion": "1.3.1",
       "wcagCriterionName": "Info and Relationships",
       "wcagLevel": "A",
@@ -292,6 +310,7 @@
     },
     {
       "id": "sensory-reference",
+      "ruleId": "sensory-reference",
       "wcagCriterion": "1.3.3",
       "wcagCriterionName": "Sensory Characteristics",
       "wcagLevel": "A",
@@ -307,6 +326,7 @@
     },
     {
       "id": "consistent-identification",
+      "ruleId": "consistent-identification",
       "wcagCriterion": "3.2.4",
       "wcagCriterionName": "Consistent Identification",
       "wcagLevel": "AA",
@@ -322,6 +342,7 @@
     },
     {
       "id": "on-input",
+      "ruleId": "on-input",
       "wcagCriterion": "3.2.2",
       "wcagCriterionName": "On Input",
       "wcagLevel": "A",
@@ -337,6 +358,7 @@
     },
     {
       "id": "timing-adjustable",
+      "ruleId": "timing-adjustable",
       "wcagCriterion": "2.2.1",
       "wcagCriterionName": "Timing Adjustable",
       "wcagLevel": "A",
@@ -352,6 +374,7 @@
     },
     {
       "id": "consistent-navigation",
+      "ruleId": "consistent-navigation",
       "wcagCriterion": "3.2.3",
       "wcagCriterionName": "Consistent Navigation",
       "wcagLevel": "AA",

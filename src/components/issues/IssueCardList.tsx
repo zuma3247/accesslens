@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import type { Issue, IssueSeverity, WcagPrinciple, SortMode, HeatmapFilter } from '@/types/audit.types';
+import type { Issue, IssueSeverity, WcagPrinciple, SortMode, HeatmapFilter, ConfidenceLevel } from '@/types/audit.types';
 import { IssueCard } from './IssueCard';
 import { FilterBar } from './FilterBar';
+import { getConfidenceForRule, generateDismissalKey, dismissViolation, restoreViolation, type DismissalReason } from '@/lib/axiomConfidence';
+import { ChevronDown } from 'lucide-react';
 
 interface IssueCardListProps {
   issues: Issue[];
@@ -10,6 +12,9 @@ interface IssueCardListProps {
   selectedIssue: Issue | null;
   onSelectIssue: (issue: Issue | null) => void;
   onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
+  scanMode?: string;
+  dismissedKeys: Set<string>;
+  onDismissedKeysChange: (keys: Set<string>) => void;
 }
 
 export function IssueCardList({
@@ -19,20 +24,69 @@ export function IssueCardList({
   selectedIssue,
   onSelectIssue,
   onOpenBeforeAfter,
+  scanMode = 'unknown',
+  dismissedKeys,
+  onDismissedKeysChange,
 }: IssueCardListProps) {
   const [severityFilter, setSeverityFilter] = useState<IssueSeverity | null>(null);
   const [principleFilter, setPrincipleFilter] = useState<WcagPrinciple | null>(null);
+  const [confidenceFilter, setConfidenceFilter] = useState<ConfidenceLevel | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>('severity');
   const [expandedIssueId, setExpandedIssueId] = useState<string | null>(null);
+  const [showDismissedAccordion, setShowDismissedAccordion] = useState(false);
   const expandedIssueIdRef = useRef<string | null>(expandedIssueId);
 
   useEffect(() => {
     expandedIssueIdRef.current = expandedIssueId;
   }, [expandedIssueId]);
 
-  // Combine all filters
-  const filteredIssues = useMemo(() => {
-    let result = [...issues];
+  // Generate dismissal key for an issue
+  const getIssueKey = useCallback((issue: Issue): string => {
+    return generateDismissalKey(scanMode, issue.ruleId, issue.id);
+  }, [scanMode]);
+
+  // Check if an issue is dismissed
+  const isIssueDismissed = useCallback((issue: Issue): boolean => {
+    return dismissedKeys.has(getIssueKey(issue));
+  }, [dismissedKeys, getIssueKey]);
+
+  // Handle dismiss action
+  const handleDismiss = useCallback((issue: Issue, _reason: DismissalReason) => {
+    const key = getIssueKey(issue);
+    dismissViolation(key);
+    const newKeys = new Set(dismissedKeys);
+    newKeys.add(key);
+    onDismissedKeysChange(newKeys);
+  }, [getIssueKey, dismissedKeys, onDismissedKeysChange]);
+
+  // Handle restore action
+  const handleRestore = useCallback((issue: Issue) => {
+    const key = getIssueKey(issue);
+    restoreViolation(key);
+    const newKeys = new Set(dismissedKeys);
+    newKeys.delete(key);
+    onDismissedKeysChange(newKeys);
+  }, [getIssueKey, dismissedKeys, onDismissedKeysChange]);
+
+  // Split issues into active and dismissed
+  const { activeIssues, dismissedIssues } = useMemo(() => {
+    const active: Issue[] = [];
+    const dismissed: Issue[] = [];
+
+    for (const issue of issues) {
+      if (isIssueDismissed(issue)) {
+        dismissed.push(issue);
+      } else {
+        active.push(issue);
+      }
+    }
+
+    return { activeIssues: active, dismissedIssues: dismissed };
+  }, [issues, isIssueDismissed]);
+
+  // Combine all filters for active issues
+  const filteredActiveIssues = useMemo(() => {
+    let result = [...activeIssues];
 
     // Apply heatmap filter
     if (heatmapFilter) {
@@ -53,6 +107,14 @@ export function IssueCardList({
       result = result.filter(issue => issue.principle === principleFilter);
     }
 
+    // Apply confidence filter
+    if (confidenceFilter) {
+      result = result.filter(issue => {
+        const confidence = getConfidenceForRule(issue.ruleId);
+        return confidence.level === confidenceFilter;
+      });
+    }
+
     // Apply sorting
     result.sort((a, b) => {
       switch (sortMode) {
@@ -70,7 +132,7 @@ export function IssueCardList({
     });
 
     return result;
-  }, [issues, heatmapFilter, severityFilter, principleFilter, sortMode]);
+  }, [activeIssues, heatmapFilter, severityFilter, principleFilter, confidenceFilter, sortMode]);
 
   const handleToggleExpand = useCallback(
     (issue: Issue) => {
@@ -89,12 +151,14 @@ export function IssueCardList({
       <FilterBar
         severityFilter={severityFilter}
         principleFilter={principleFilter}
+        confidenceFilter={confidenceFilter}
         sortMode={sortMode}
         onSeverityChange={setSeverityFilter}
         onPrincipleChange={setPrincipleFilter}
+        onConfidenceChange={setConfidenceFilter}
         onSortChange={setSortMode}
-        filteredCount={filteredIssues.length}
-        totalCount={issues.length}
+        filteredCount={filteredActiveIssues.length}
+        totalCount={activeIssues.length}
       />
 
       {/* Active Heatmap Filter Badge */}
@@ -114,26 +178,71 @@ export function IssueCardList({
         </div>
       )}
 
-      {/* Issue Cards */}
+      {/* Active Issue Cards */}
       <div className="space-y-3" role="list" aria-label="Accessibility issues">
-        {filteredIssues.map(issue => (
+        {filteredActiveIssues.map(issue => (
           <div key={issue.id} role="listitem">
             <IssueCard
               issue={issue}
               isExpanded={expandedIssueId === issue.id}
               onToggle={() => handleToggleExpand(issue)}
               isSelected={selectedIssue?.id === issue.id}
+              isDismissed={false}
+              onDismiss={handleDismiss}
               onOpenBeforeAfter={onOpenBeforeAfter}
             />
           </div>
         ))}
       </div>
 
-      {/* Empty State */}
-      {filteredIssues.length === 0 && (
+      {/* Empty State for Active Issues */}
+      {filteredActiveIssues.length === 0 && activeIssues.length > 0 && (
         <div className="text-center py-8 text-[hsl(var(--color-text-secondary))]">
           <p>No issues match the current filters.</p>
         </div>
+      )}
+
+      {activeIssues.length === 0 && dismissedIssues.length === 0 && (
+        <div className="text-center py-8 text-[hsl(var(--color-text-secondary))]">
+          <p>No accessibility issues found.</p>
+        </div>
+      )}
+
+      {/* Dismissed Violations Accordion */}
+      {dismissedIssues.length > 0 && (
+        <details
+          className="mt-6 border border-[hsl(var(--color-border))] rounded-lg"
+          open={showDismissedAccordion}
+          onToggle={(e) => setShowDismissedAccordion(e.currentTarget.open)}
+        >
+          <summary
+            className="flex items-center justify-between px-4 py-3 bg-[hsl(var(--color-bg-surface))] rounded-lg cursor-pointer hover:bg-[hsl(var(--color-bg-elevated))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+            aria-label={`Dismissed violations, ${dismissedIssues.length} items`}
+          >
+            <span className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
+              Dismissed Violations ({dismissedIssues.length})
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-[hsl(var(--color-text-secondary))] transition-transform ${showDismissedAccordion ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </summary>
+          <div className="p-4 space-y-3 border-t border-[hsl(var(--color-border))]">
+            {dismissedIssues.map(issue => (
+              <div key={issue.id} role="listitem">
+                <IssueCard
+                  issue={issue}
+                  isExpanded={expandedIssueId === issue.id}
+                  onToggle={() => handleToggleExpand(issue)}
+                  isSelected={selectedIssue?.id === issue.id}
+                  isDismissed={true}
+                  onRestore={handleRestore}
+                  onOpenBeforeAfter={onOpenBeforeAfter}
+                />
+              </div>
+            ))}
+          </div>
+        </details>
       )}
     </div>
   );

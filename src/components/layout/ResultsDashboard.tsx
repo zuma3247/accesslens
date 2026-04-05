@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { AuditPayload, HeatmapGrid, Issue, HeatmapFilter } from '@/types/audit.types';
 import { useBatchCopy } from '@/hooks/useBatchCopy';
 import { ScoreRing } from '@/components/score/ScoreRing';
+import { TriagedScore } from '@/components/score/TriagedScore';
 import { LevelBreakdown } from '@/components/score/LevelBreakdown';
 import { IssueHeatmap } from '@/components/heatmap/IssueHeatmap';
 import { IssueCardList } from '@/components/issues/IssueCardList';
@@ -9,6 +10,9 @@ import { IssueDetail } from '@/components/issues/IssueDetail';
 import { CopyAllCriticalButton } from '@/components/prompt/CopyAllCriticalButton';
 import { BatchPromptModal } from '@/components/prompt/BatchPromptModal';
 import { BeforeAfterPanel } from '@/components/before-after/BeforeAfterPanel';
+import { DemoDataBanner } from './DemoDataBanner';
+import { LivePreviewPanel } from '@/components/live-preview/LivePreviewPanel';
+import { getDismissedViolations, generateDismissalKey } from '@/lib/axiomConfidence';
 
 interface ResultsDashboardProps {
   payload: AuditPayload;
@@ -22,8 +26,26 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
   const [beforeAfterIssue, setBeforeAfterIssue] = useState<Issue | null>(null);
   const [isBeforeAfterOpen, setIsBeforeAfterOpen] = useState(false);
   const [beforeAfterTriggerElement, setBeforeAfterTriggerElement] = useState<HTMLElement | null>(null);
+  const [isLivePreviewOpen, setIsLivePreviewOpen] = useState(false);
+  const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
   const closeTimeoutRef = useRef<number | null>(null);
   const { promptText } = useBatchCopy(payload);
+
+  useEffect(() => {
+    const stored = getDismissedViolations();
+    setDismissedKeys(stored);
+  }, []);
+
+  const dismissedIssueIds = useMemo(() => {
+    const keys = new Set<string>();
+    for (const issue of payload.issues) {
+      const key = generateDismissalKey(payload.scanMode || 'unknown', issue.ruleId, issue.id);
+      if (dismissedKeys.has(key)) {
+        keys.add(key);
+      }
+    }
+    return keys;
+  }, [payload.issues, payload.scanMode, dismissedKeys]);
 
   useEffect(() => {
     return () => {
@@ -64,12 +86,16 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Demo Data Disclosure Banner - URL scan mode only */}
+      <DemoDataBanner payload={payload} />
+
       {/* Three Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Panel - Score Overview */}
         <div className="lg:col-span-3 space-y-6">
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
             <ScoreRing score={payload.overallScore} grade={payload.grade} isFallback={payload.isFallback} levelBreakdown={payload.levelBreakdown} />
+            <TriagedScore issues={payload.issues} dismissedIssueIds={dismissedIssueIds} scanMode={payload.scanMode || 'unknown'} />
           </div>
           
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
@@ -108,6 +134,19 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             <div className="h-28 md:hidden" />
           </div>
 
+          {/* Live Preview Button - only for HTML mode */}
+          {payload.scanMode === 'html' && (
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={() => setIsLivePreviewOpen(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] text-[hsl(var(--color-text-primary))] font-medium rounded-lg hover:bg-[hsl(var(--color-bg-surface))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+              >
+                <span>View Live Preview with Violation Highlights</span>
+              </button>
+            </div>
+          )}
+
           {/* Issue List */}
           <IssueCardList
             issues={payload.issues}
@@ -116,6 +155,9 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             selectedIssue={selectedIssue}
             onSelectIssue={setSelectedIssue}
             onOpenBeforeAfter={handleOpenBeforeAfter}
+            scanMode={payload.scanMode || 'unknown'}
+            dismissedKeys={dismissedKeys}
+            onDismissedKeysChange={setDismissedKeys}
           />
         </div>
 
@@ -129,6 +171,14 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
           </div>
         </div>
       </div>
+
+      {/* Live Preview Panel */}
+      <LivePreviewPanel
+        htmlContent={payload.auditedInput}
+        issues={payload.issues}
+        isOpen={isLivePreviewOpen}
+        onClose={() => setIsLivePreviewOpen(false)}
+      />
 
       {/* Batch Prompt Modal */}
       <BatchPromptModal

@@ -11,6 +11,7 @@ export type WcagLevel = 'A' | 'AA' | 'AAA';
 export type IssueSeverity = 'critical' | 'serious' | 'moderate' | 'minor';
 export type WcagPrinciple = 'perceivable' | 'operable' | 'understandable' | 'robust';
 export type AuditSource = 'mock' | 'live-axe';
+export type ConfidenceLevel = 'confirmed' | 'likely' | 'review';
 export type ImpairmentKey =
   | 'none'
   | 'achromatopsia'
@@ -21,7 +22,7 @@ export type ImpairmentKey =
 export type BeforeAfterType = 'contrast' | 'alt-text' | 'touch-target';
 export type SortMode = 'severity' | 'criterion' | 'count';
 export type ViewState = 'idle' | 'loading' | 'results';
-export type InputMode = 'url' | 'html';
+export type InputMode = 'url' | 'html' | 'alt-text';
 
 // ============================================
 // AuditPayload — Root Result Object
@@ -32,6 +33,7 @@ export interface AuditPayload {
   auditedInput: string;
   auditedAt: string;
   source: AuditSource;
+  scanMode?: InputMode; // Set by auditEngine after mapping
   overallScore: number;
   grade: WcagLevel | 'Fail';
   levelBreakdown: LevelBreakdown;
@@ -83,6 +85,7 @@ export interface PrincipleBreakdown {
 
 export interface Issue {
   id: string;
+  ruleId: string; // axe-core rule ID for confidence lookup and dismissal
   wcagCriterion: string;
   wcagCriterionName: string;
   wcagLevel: WcagLevel;

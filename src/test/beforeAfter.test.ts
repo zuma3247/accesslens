@@ -7,6 +7,7 @@ import type { ContrastDemoProps, AltTextDemoProps, TouchTargetDemoProps } from '
 // Mock issue data for testing
 const mockContrastIssue: Issue = {
   id: 'test-contrast',
+  ruleId: 'color-contrast',
   wcagCriterion: '1.4.3',
   wcagCriterionName: 'Contrast (Minimum)',
   wcagLevel: 'AA',
@@ -25,6 +26,7 @@ const mockContrastIssue: Issue = {
 const mockAltTextIssue: Issue = {
   ...mockContrastIssue,
   id: 'test-alt-text',
+  ruleId: 'image-alt',
   beforeAfterType: 'alt-text',
   codeSnippet: '<img src="test.jpg" alt="">',
   codeFixExample: '<img src="test.jpg" alt="Test image description">'
@@ -33,6 +35,7 @@ const mockAltTextIssue: Issue = {
 const mockTouchTargetIssue: Issue = {
   ...mockContrastIssue,
   id: 'test-touch-target',
+  ruleId: 'target-size',
   beforeAfterType: 'touch-target',
   codeSnippet: '<button style="width: 18px; height: 18px">×</button>',
   codeFixExample: '<button style="width: 24px; height: 24px">×</button>'

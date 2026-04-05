@@ -135,6 +135,7 @@ export function mapAxeResultToPayload(
 
     return {
       id: violation.id,
+      ruleId: violation.id,
       wcagCriterion: criterion,
       wcagCriterionName: violation.help,
       wcagLevel: level,

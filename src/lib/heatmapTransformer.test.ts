@@ -91,6 +91,7 @@ function makeIssue(
 ): Issue {
   return {
     id,
+    ruleId: 'test-rule',
     wcagCriterion: '1.1.1',
     wcagCriterionName: name,
     wcagLevel: 'A',

@@ -3,6 +3,7 @@ import type { Issue, AuditPayload } from '@/types/audit.types';
 
 const mockIssue: Issue = {
   id: 'color-contrast',
+  ruleId: 'color-contrast',
   wcagCriterion: '1.4.3',
   wcagCriterionName: 'Contrast (Minimum)',
   wcagLevel: 'AA',

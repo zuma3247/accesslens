@@ -1,6 +1,8 @@
-import { Sun, Moon, RotateCcw } from 'lucide-react';
+import { Sun, Moon, RotateCcw, Palette } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import { useState } from 'react';
 import type { ViewState } from '@/types/audit.types';
+import { TokenAuditorModal } from '@/components/token-auditor/TokenAuditorModal';
 
 interface TopNavProps {
   viewState: ViewState;
@@ -10,6 +12,7 @@ interface TopNavProps {
 
 export function TopNav({ viewState, auditedUrl, onNewScan }: TopNavProps) {
   const { theme, toggleTheme } = useTheme();
+  const [isTokenAuditorOpen, setIsTokenAuditorOpen] = useState(false);
   const isDark = theme === 'dark';
 
   const isNewScanDisabled = viewState === 'idle' || viewState === 'loading';
@@ -28,6 +31,18 @@ export function TopNav({ viewState, auditedUrl, onNewScan }: TopNavProps) {
 
       {/* Right side controls */}
       <div className="flex items-center gap-4">
+        {/* Token Auditor Button - only in results state */}
+        {viewState === 'results' && (
+          <button
+            type="button"
+            onClick={() => setIsTokenAuditorOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-[hsl(var(--color-text-primary))] hover:bg-[hsl(var(--color-bg-elevated))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+          >
+            <Palette className="w-4 h-4" aria-hidden="true" />
+            <span>Audit Design Tokens</span>
+          </button>
+        )}
+
         {/* Audited URL Badge - only in results state */}
         {viewState === 'results' && auditedUrl && (
           <div className="hidden md:flex items-center px-3 py-1.5 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md">
@@ -68,6 +83,12 @@ export function TopNav({ viewState, auditedUrl, onNewScan }: TopNavProps) {
           )}
         </button>
       </div>
+
+      {/* Token Auditor Modal */}
+      <TokenAuditorModal
+        isOpen={isTokenAuditorOpen}
+        onClose={() => setIsTokenAuditorOpen(false)}
+      />
     </header>
   );
 }

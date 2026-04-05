@@ -42,6 +42,21 @@ export function ModeToggleTabs({ mode, onChange }: ModeToggleTabsProps) {
       >
         HTML Snippet
       </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={mode === 'alt-text'}
+        aria-controls="alt-text-panel"
+        id="alt-text-tab"
+        onClick={() => onChange('alt-text')}
+        className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] ${
+          mode === 'alt-text'
+            ? 'bg-[hsl(var(--indigo-600))] text-[hsl(var(--slate-50))]'
+            : 'text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))]'
+        }`}
+      >
+        Alt-Text Quality
+      </button>
     </div>
   );
 }

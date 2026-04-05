@@ -151,10 +151,10 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
         WCAG 2.2 Target: AA
       </p>
       
-      {/* Fallback notice */}
+      {/* Demo data notice for URL scans using representative data */}
       {isFallback && (
         <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] text-center max-w-[200px]">
-          Showing results for a representative e-commerce page
+          This representative page has violations for demonstration. Use HTML Snippet mode for real analysis.
         </p>
       )}
     </div>
