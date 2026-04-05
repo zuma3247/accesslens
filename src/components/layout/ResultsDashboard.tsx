@@ -108,13 +108,14 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
 
         {/* Center Panel - Heatmap and Issues */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Live Preview - primary center focus for HTML mode */}
-          {payload.scanMode === 'html' && (
+          {/* Live Preview - primary center focus for HTML mode or URL mode with fetched HTML */}
+          {(payload.scanMode === 'html' || payload.fetchedHtml) && (
             <LivePreviewPanel
-              htmlContent={payload.auditedInput}
+              htmlContent={payload.fetchedHtml || payload.auditedInput}
               issues={payload.issues}
               isCollapsed={isLivePreviewCollapsed}
               onToggleCollapsed={() => setIsLivePreviewCollapsed((prev) => !prev)}
+              isUrlContent={!!payload.fetchedHtml}
             />
           )}
 

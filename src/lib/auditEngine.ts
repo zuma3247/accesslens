@@ -40,6 +40,7 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
       source: 'live-axe',
       isFallback: false,
       scanMode: 'url',
+      fetchedHtml: html, // Store the fetched HTML for live preview
     };
   }
 

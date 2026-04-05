@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Loader2, Sparkles, Lock, FileCode, Upload } from 'lucide-react';
 import type { InputMode, AuditInput } from '@/types/audit.types';
 import { ModeToggleTabs } from './ModeToggleTabs';
@@ -32,6 +32,24 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
   const [htmlValue, setHtmlValue] = useState('');
   const [cssValue, setCssValue] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const stylesheetLinkCount = useMemo(() => {
+    const trimmedHtml = htmlValue.trim();
+    if (!trimmedHtml) return 0;
+
+    const parsed = new DOMParser().parseFromString(trimmedHtml, 'text/html');
+    const links = Array.from(parsed.querySelectorAll('link[rel]'));
+
+    return links.filter((link) => {
+      const rel = link.getAttribute('rel') ?? '';
+      return rel.toLowerCase().split(/\s+/).includes('stylesheet');
+    }).length;
+  }, [htmlValue]);
+
+  const htmlInputDescribedBy = [
+    error ? 'input-error' : null,
+    stylesheetLinkCount > 0 ? 'html-stylesheet-warning' : null,
+  ].filter(Boolean).join(' ') || undefined;
 
   const handleModeChange = (mode: InputMode) => {
     setInputMode(mode);
@@ -167,9 +185,25 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
                 disabled={isLoading || disabled}
                 rows={6}
                 placeholder="<!-- Paste any HTML fragment to audit it live -->"
-                aria-describedby={error ? 'input-error' : undefined}
+                aria-describedby={htmlInputDescribedBy}
                 className={`w-full px-4 py-3 bg-[hsl(var(--color-bg-elevated))] border rounded-lg text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-disabled))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))] disabled:opacity-50 disabled:cursor-not-allowed font-mono resize-y ${error ? 'border-[hsl(var(--color-error))]' : 'border-[hsl(var(--color-border))]'}`}
               />
+
+              {stylesheetLinkCount > 0 && (
+                <div
+                  id="html-stylesheet-warning"
+                  role="status"
+                  aria-live="polite"
+                  className="rounded-lg border border-[hsl(var(--amber-300))] bg-[hsl(var(--amber-100)/0.45)] px-3 py-2"
+                >
+                  <p className="text-xs font-medium text-[hsl(var(--color-text-primary))]">
+                    Detected {stylesheetLinkCount} stylesheet link{stylesheetLinkCount > 1 ? 's' : ''} in your HTML.
+                  </p>
+                  <p className="text-xs text-[hsl(var(--color-text-secondary))] mt-1">
+                    Next step: copy CSS from each linked file and paste it into the CSS field below, then run Analyze.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* CSS Input */}

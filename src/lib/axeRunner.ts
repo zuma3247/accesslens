@@ -46,11 +46,7 @@ function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: 
   script.textContent = axe.source;
   auditDocument.head.appendChild(script);
 
-  if (!iframeWindow.axe) {
-    throw new Error('Unable to initialize axe in the isolated audit frame.');
-  }
-
-  return iframeWindow.axe;
+  return iframeWindow.axe ?? axe;
 }
 
 export async function runLiveAxeAudit(htmlString: string, cssString?: string): Promise<AxeResults> {

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test URL Preview Feature</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-url {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .expected {
+            color: #28a745;
+        }
+        .note {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>URL Live Preview Implementation Test</h1>
+    
+    <div class="test-section">
+        <h2>✅ Implementation Complete</h2>
+        <p>The URL live preview feature has been successfully implemented with the following components:</p>
+        
+        <h3>1. Vercel Serverless Proxy (<code>api/proxy.ts</code>)</h3>
+        <ul>
+            <li>Bypasses CORS for external URLs</li>
+            <li>Security: Blocks private IPs and localhost</li>
+            <li>10-second timeout with proper error handling</li>
+            <li>Browser-like User-Agent header</li>
+        </ul>
+        
+        <h3>2. Dev Middleware (<code>vite.config.ts</code>)</h3>
+        <ul>
+            <li>Same proxy logic for local development</li>
+            <li>Ensures <code>npm run dev</code> works the same as production</li>
+        </ul>
+        
+        <h3>3. URL Fetcher Updates (<code>urlFetcher.ts</code>)</h3>
+        <ul>
+            <li>Routes through <code>/api/proxy</code> endpoint</li>
+            <li>Injects <code>&lt;base&gt;</code> tag for asset resolution</li>
+            <li>Proper error parsing from proxy responses</li>
+        </ul>
+        
+        <h3>4. Data Flow Updates</h3>
+        <ul>
+            <li><code>AuditPayload.fetchedHtml</code> field added</li>
+            <li><code>auditEngine.ts</code> stores fetched HTML</li>
+            <li><code>ResultsDashboard</code> ungates LivePreviewPanel for URLs</li>
+            <li>iframe sandbox adjusted for external assets</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 How to Test</h2>
+        
+        <h3>Good Test URLs:</h3>
+        <div class="test-url">https://www.w3.org/WAI/demos/bad/before/home.html</div>
+        <p class="note">W3C's intentionally inaccessible demo page - perfect for showing violations</p>
+        
+        <div class="test-url">https://example.com</div>
+        <p class="note">Simple static site - should always work</p>
+        
+        <h3>Test Steps:</h3>
+        <ol>
+            <li>Run <code>npm run dev</code> (or deploy to Vercel)</li>
+            <li>Enter one of the test URLs in the URL input field</li>
+            <li>Click "Analyze"</li>
+            <li><span class="expected">Expected:</span> Live Preview panel appears with the rendered page</li>
+            <li>Hover over highlighted elements to see WCAG violation tooltips</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>⚠️ Known Limitations</h2>
+        <ul>
+            <li>JavaScript-heavy SPAs (React, Angular) will show blank shells</li>
+            <li>Sites with bot protection may block the proxy</li>
+            <li>Some external assets (fonts, complex CSS) may not load perfectly</li>
+        </ul>
+        <p class="note">These limitations are acceptable for a demo/interview setting.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Demo Talking Points</h2>
+        <ul>
+            <li><strong>"We fetch the page server-side to bypass CORS"</strong> - shows understanding of browser security</li>
+            <li><strong>"The violation overlays are pure CSS - no scripts injected"</strong> - security-first approach</li>
+            <li><strong>"Hover any highlighted element to see the exact WCAG criterion"</strong> - interactive demo</li>
+            <li><strong>"Works for static sites; for SPAs we'd extend with Puppeteer"</strong> - shows upgrade path awareness</li>
+        </ul>
+    </div>
+</body>
+</html>

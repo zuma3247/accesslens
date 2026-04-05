@@ -6,6 +6,7 @@ interface LivePreviewPanelProps {
   issues: Issue[];
   isCollapsed: boolean;
   onToggleCollapsed: () => void;
+  isUrlContent?: boolean; // Whether this content is from a URL (needs different sandbox)
 }
 
 function sanitizeHtmlForPreview(html: string): string {
@@ -163,6 +164,7 @@ export function LivePreviewPanel({
   issues,
   isCollapsed,
   onToggleCollapsed,
+  isUrlContent = false,
 }: LivePreviewPanelProps) {
 
   // Generate iframe srcdoc — memoized to avoid recompute on every render
@@ -221,7 +223,7 @@ export function LivePreviewPanel({
               srcDoc={iframeContent}
               className="w-full h-full border-0"
               title="Live preview with accessibility violations highlighted"
-              sandbox=""
+              sandbox={isUrlContent ? "allow-same-origin" : ""}
             />
           </div>
 

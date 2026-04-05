@@ -30,18 +30,19 @@ export type InputMode = 'url' | 'html' | 'alt-text';
 
 export interface AuditPayload {
   id: string;
-  auditedInput: string;
   auditedAt: string;
+  auditedInput: string;
   source: AuditSource;
-  scanMode?: InputMode; // Set by auditEngine after mapping
+  isFallback?: boolean;
+  scanMode: InputMode;
   overallScore: number;
   grade: WcagLevel | 'Fail';
   levelBreakdown: LevelBreakdown;
   principleBreakdown: PrincipleBreakdown;
   issues: Issue[];
+  fetchedHtml?: string; // Raw HTML fetched from URL (for live preview)
   passingCriteria: PassingCriterion[];
   totalElements: number;
-  isFallback?: boolean;
 }
 
 // ============================================

@@ -12,25 +12,76 @@ function ensureProtocol(rawUrl: string): string {
 }
 
 async function fetchDirect(url: string): Promise<UrlFetchResult> {
-  const response = await fetch(url, {
+  // Use our proxy endpoint to bypass CORS
+  const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+  
+  const response = await fetch(proxyUrl, {
     method: 'GET',
     headers: {
-      Accept: 'text/html,application/xhtml+xml',
+      Accept: 'text/html',
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Direct fetch failed (${response.status})`);
+    // Try to parse error response
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // If not JSON, use status text
+      errorMessage = `${errorMessage}: ${response.statusText}`;
+    }
+    throw new Error(`Proxy fetch failed (${errorMessage})`);
   }
 
   const html = await response.text();
-  const finalUrl = response.url || url;
+  const finalUrl = url; // We know the original URL since we're proxying
 
   if (!html || !/<html|<body|<!doctype/i.test(html)) {
     throw new Error('Fetched content did not look like HTML');
   }
 
-  return { html, finalUrl };
+  // Inject base tag to resolve relative assets to the original domain
+  const baseHref = new URL(finalUrl).origin;
+  const htmlWithBase = injectBaseTag(html, baseHref);
+
+  return { html: htmlWithBase, finalUrl };
+}
+
+function injectBaseTag(html: string, baseHref: string): string {
+  // Check if base tag already exists
+  const baseTagMatch = html.match(/<base\s+[^>]*>/i);
+  if (baseTagMatch) {
+    // Update existing base tag
+    return html.replace(
+      /<base\s+([^>]*)>/i,
+      `<base $1 href="${baseHref}">`
+    );
+  }
+
+  // Insert new base tag after <head> or at the beginning if no head
+  const headMatch = html.match(/<head([^>]*)>/i);
+  if (headMatch) {
+    return html.replace(
+      headMatch[0],
+      `${headMatch[0]}\n  <base href="${baseHref}">`
+    );
+  }
+
+  // If no head tag, insert after <html> or at the very beginning
+  const htmlMatch = html.match(/<html([^>]*)>/i);
+  if (htmlMatch) {
+    return html.replace(
+      htmlMatch[0],
+      `${htmlMatch[0]}\n<head>\n  <base href="${baseHref}">\n</head>`
+    );
+  }
+
+  // Fallback: prepend at the very beginning
+  return `<head><base href="${baseHref}"></head>${html}`;
 }
 
 export async function fetchUrlHtml(rawUrl: string): Promise<UrlFetchResult> {
