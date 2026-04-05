@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ThemeProvider } from './context/ThemeContext';
+import { ErrorBoundary } from './components/errors/ErrorBoundary';
 import './styles/globals.css';
 import './styles/emulation.css';
 
@@ -16,9 +17,9 @@ async function mountApp() {
 
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
-      <ThemeProvider>
-        {app}
-      </ThemeProvider>
+      <ErrorBoundary>
+        <ThemeProvider>{app}</ThemeProvider>
+      </ErrorBoundary>
     </React.StrictMode>,
   );
 }

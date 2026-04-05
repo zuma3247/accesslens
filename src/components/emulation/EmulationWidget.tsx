@@ -17,19 +17,17 @@ export function EmulationWidget() {
   const activeFilter = IMPAIRMENT_FILTERS.find(f => f.key === activeImpairment);
   const isFilterActive = activeImpairment !== 'none';
 
-  // Save the element that triggered the widget to open
-  const handleOpen = () => {
+  const handleOpen = useCallback(() => {
     lastFocusedElement.current = document.activeElement as HTMLElement;
     setIsExpanded(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsExpanded(false);
-    // Return focus to the trigger element
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       lastFocusedElement.current?.focus();
-    }, 0);
-  };
+    });
+  }, []);
 
   // Focus trap helper
   const getFocusableElements = useCallback(() => {
@@ -62,26 +60,27 @@ export function EmulationWidget() {
     }
   }, [isExpanded, getFocusableElements]);
 
-  // Handle escape key to close widget and manage focus trap
   useEffect(() => {
+    if (!isExpanded) return;
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && isExpanded) {
+      if (event.key === 'Escape') {
         handleClose();
-      } else if (event.key === 'Tab' && isExpanded) {
+      } else if (event.key === 'Tab') {
         handleTabKey(event);
       }
     }
 
-    if (isExpanded) {
-      document.addEventListener('keydown', handleKeyDown);
-      // Focus first button when expanded
-      setTimeout(() => {
-        firstButtonRef.current?.focus();
-      }, 50);
-    }
+    document.addEventListener('keydown', handleKeyDown);
+    const focusTimeoutId = window.setTimeout(() => {
+      firstButtonRef.current?.focus();
+    }, 50);
 
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isExpanded, handleTabKey]);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.clearTimeout(focusTimeoutId);
+    };
+  }, [isExpanded, handleClose, handleTabKey]);
 
   const handleImpairmentSelect = (key: string) => {
     setActiveImpairment(key as typeof activeImpairment);

@@ -9,17 +9,14 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (saved === 'light' || saved === 'dark') {
       return saved;
     }
-    // Fall back to system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   useEffect(() => {
-    // Update localStorage and data-theme attribute when theme changes
     localStorage.setItem(STORAGE_KEY, theme);
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);

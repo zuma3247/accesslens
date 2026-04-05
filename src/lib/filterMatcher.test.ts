@@ -14,6 +14,9 @@ test('matches all five known URLs', async () => {
     expect(payload).toBeDefined();
     expect(isFallback).toBe(false);
     expect(payload.auditedInput).toBe(url);
+    expect(typeof payload.overallScore).toBe('number');
+    expect(Array.isArray(payload.issues)).toBe(true);
+    expect(payload.issues.length).toBeGreaterThan(0);
   }
 });
 

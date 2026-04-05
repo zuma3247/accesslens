@@ -8,6 +8,29 @@ import type {
 import { runAudit } from '@/lib/auditEngine';
 import { transformToHeatmap } from '@/lib/heatmapTransformer';
 
+function formatAuditError(err: unknown): string {
+  if (import.meta.env.DEV) {
+    console.error('[useAudit]', err);
+  }
+  if (typeof err !== 'object' || err === null) {
+    return 'An error occurred during audit';
+  }
+  const e = err as Error;
+  const message = typeof e.message === 'string' ? e.message : '';
+  const name = typeof e.name === 'string' ? e.name : 'Error';
+
+  if (name === 'SyntaxError') {
+    return 'Audit data could not be parsed. Please try again or use a different input.';
+  }
+  if (name === 'TypeError' || /failed to fetch|network|load failed/i.test(message)) {
+    return 'A network or loading error occurred. Check your connection and try again.';
+  }
+  if (message) {
+    return message;
+  }
+  return 'An error occurred during audit';
+}
+
 interface UseAuditReturn {
   viewState: ViewState;
   auditResult: AuditPayload | null;
@@ -33,7 +56,7 @@ export function useAudit(): UseAuditReturn {
       setHeatmapGrid(transformToHeatmap(result.issues));
       setViewState('results');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during audit');
+      setError(formatAuditError(err));
       setViewState('idle');
     }
   }, []);

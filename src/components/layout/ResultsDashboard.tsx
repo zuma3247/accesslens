@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { AuditPayload, HeatmapGrid, Issue, HeatmapFilter } from '@/types/audit.types';
 import { useBatchCopy } from '@/hooks/useBatchCopy';
 import { ScoreRing } from '@/components/score/ScoreRing';
@@ -24,6 +24,14 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
   const [beforeAfterTriggerElement, setBeforeAfterTriggerElement] = useState<HTMLElement | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
   const { promptText } = useBatchCopy(payload);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleOpenBeforeAfter = (issue: Issue, triggerElement?: HTMLElement) => {
     // Clear any pending close timeout
