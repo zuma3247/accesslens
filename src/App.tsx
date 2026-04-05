@@ -3,6 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TopNav } from '@/components/layout/TopNav';
 import { InputPanel } from '@/components/input/InputPanel';
 import { ResultsDashboard } from '@/components/layout/ResultsDashboard';
+import { SkeletonDashboard } from '@/components/skeleton/SkeletonDashboard';
 import { SVGFilterDefs } from '@/components/emulation/SVGFilterDefs';
 import { EmulationWidget } from '@/components/emulation/EmulationWidget';
 import { EmulationProvider } from '@/context/EmulationContext';
@@ -37,12 +38,8 @@ function App() {
           )}
 
           {viewState === 'loading' && (
-            <div className="px-6 py-12 opacity-50 pointer-events-none">
-              <InputPanel
-                onAnalyze={runAudit}
-                isLoading={true}
-                disabled={true}
-              />
+            <div className="px-6 py-8">
+              <SkeletonDashboard />
             </div>
           )}
 

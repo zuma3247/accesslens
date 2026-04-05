@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "organization": "AccessLens",
+  "date": "April 2026",
+  "abstract": "Performance optimization guide tailored for the AccessLens React accessibility dashboard. Contains project-specific adaptations of general React best practices, focusing on Framer Motion animations, axe-core integration, and component architecture (Score Ring, Heatmap, Issue Cards, Emulation Widget).",
+  "project": "AccessLens WCAG Accessibility Dashboard",
+  "references": [
+    "https://react.dev",
+    "https://www.framer.com/motion",
+    "https://github.com/d3/d3-scale",
+    "https://lucide.dev",
+    "https://www.w3.org/WAI/WCAG22/quickref/"
+  ]
+}

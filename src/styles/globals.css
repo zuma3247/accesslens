@@ -225,4 +225,56 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Skeleton Loading Shimmer Animation */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--slate-100) / 0.4) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Static skeleton (for reduced motion or non-animated parts) */
+  .skeleton-shimmer-static {
+    background-color: hsl(var(--slate-200));
+  }
+
+  /* Dark mode adjustments */
+  :root[data-theme='dark'] .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--slate-800) / 0.4) 50%,
+      transparent 100%
+    );
+  }
+
+  :root[data-theme='dark'] .skeleton-shimmer-static {
+    background-color: hsl(var(--slate-700));
+  }
+
+  /* Reduced motion - disable shimmer */
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer::after {
+      display: none;
+    }
+  }
 }

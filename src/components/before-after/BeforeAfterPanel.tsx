@@ -45,8 +45,8 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
       const relativeX = moveEvent.clientX - containerRect.left;
       const percentage = (relativeX / containerRect.width) * 100;
       
-      // Clamp between 20% and 80%
-      const clampedPercentage = Math.max(20, Math.min(80, percentage));
+      // Clamp between 10% and 90% per spec
+      const clampedPercentage = Math.max(10, Math.min(90, percentage));
       setLeftPanelWidth(clampedPercentage);
     };
     
@@ -64,14 +64,22 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      setLeftPanelWidth(prev => Math.max(20, prev - 5));
+      setLeftPanelWidth(prev => Math.max(10, prev - 5));
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
-      setLeftPanelWidth(prev => Math.min(80, prev + 5));
+      setLeftPanelWidth(prev => Math.min(90, prev + 5));
     }
     // Note: Enter/Space intentionally not handled - arrow keys are the proper
     // keyboard interaction for resizing, Enter/Space would incorrectly trigger mouse mode
   }, []);
+
+  // Handle Escape key to close panel
+  const handlePanelKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    }
+  }, [onClose]);
 
   if (!demoContent) {
     return null;
@@ -105,6 +113,7 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
           role="dialog"
           aria-modal="true"
           aria-labelledby="before-after-title"
+          onKeyDown={handlePanelKeyDown}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))]">
@@ -141,6 +150,9 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
               ref={dragHandleRef}
               role="separator"
               aria-orientation="vertical"
+              aria-valuenow={leftPanelWidth}
+              aria-valuemin={10}
+              aria-valuemax={90}
               aria-label="Drag to compare before and after. Use arrow keys to resize."
               tabIndex={0}
               onMouseDown={handleMouseDown}
