@@ -1,3 +1,7 @@
+/**
+ * Server-side HTML fetch for URL mode (CORS bypass).
+ * Path avoids the substring "proxy", which many browser privacy blocklists match and cancel as false positives.
+ */
 interface VercelRequestLike {
   method?: string;
   url?: string;

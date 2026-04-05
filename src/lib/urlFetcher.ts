@@ -13,7 +13,7 @@ function ensureProtocol(rawUrl: string): string {
 
 async function fetchDirect(url: string): Promise<UrlFetchResult> {
   // Use our proxy endpoint to bypass CORS
-  const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+  const proxyUrl = `/api/fetch-page?url=${encodeURIComponent(url)}`;
   
   const response = await fetch(proxyUrl, {
     method: 'GET',

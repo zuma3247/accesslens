@@ -8,7 +8,7 @@ export default defineConfig({
     {
       name: 'proxy-middleware',
       configureServer(server) {
-        server.middlewares.use('/api/proxy', async (req, res, next) => {
+        server.middlewares.use('/api/fetch-page', async (req, res, next) => {
           if (req.method !== 'GET' && req.method !== 'OPTIONS') {
             return next();
           }

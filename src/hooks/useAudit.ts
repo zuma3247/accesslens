@@ -22,7 +22,11 @@ function formatAuditError(err: unknown): string {
   if (name === 'SyntaxError') {
     return 'Audit data could not be parsed. Please try again or use a different input.';
   }
-  if (name === 'TypeError' || /failed to fetch|network|load failed/i.test(message)) {
+  // Do not treat every TypeError as "network" — e.g. undefined property bugs surface as TypeError too.
+  const looksLikeNetworkFailure =
+    /failed to fetch|networkerror|err_network|load failed|fetch.*aborted|aborted/i.test(message) ||
+    (name === 'TypeError' && /network|load failed/i.test(message));
+  if (looksLikeNetworkFailure) {
     return 'A network or loading error occurred. Check your connection and try again.';
   }
   if (message) {

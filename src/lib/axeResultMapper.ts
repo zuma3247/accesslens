@@ -51,7 +51,7 @@ const PRINCIPLE_MAP: Record<string, WcagPrinciple> = {
 
 function extractWcagCriterion(result: Result): { criterion: string; level: WcagLevel } {
   // axe-core tags include wcag tags like "wcag143", "wcag111", "wcag1411"
-  const wcagTag = result.tags.find((t) => /^wcag\d{3,}$/.test(t));
+  const wcagTag = (result.tags ?? []).find((t) => /^wcag\d{3,}$/.test(t));
   if (!wcagTag) return { criterion: 'Best Practice', level: 'AA' };
 
   // WCAG criteria follow the pattern: {principle}.{guideline}.{criterion}
@@ -74,7 +74,7 @@ function extractWcagCriterion(result: Result): { criterion: string; level: WcagL
 }
 
 function axeNodeToCodeSnippet(node: NodeResult): string {
-  const raw = node.html ?? node.target.join(' ');
+  const raw = node.html ?? (Array.isArray(node.target) ? node.target.join(' ') : '');
   return raw.length > 120 ? raw.slice(0, 117) + '...' : raw;
 }
 
@@ -91,7 +91,7 @@ function calculateLevelBreakdownFromAxe(
   >();
 
   // Add passing criteria
-  for (const pass of passes) {
+  for (const pass of passes ?? []) {
     const { criterion, level } = extractWcagCriterion(pass);
     const principle = PRINCIPLE_MAP[pass.id] ?? 'robust';
     criteriaStatus.set(criterion, { level, passing: true, principle });
@@ -130,7 +130,8 @@ export function mapAxeResultToPayload(
   auditedInput: string
 ): AuditPayload {
   const issues: Issue[] = axeResults.violations.map((violation): Issue => {
-    const firstNode = violation.nodes[0];
+    const nodes = violation.nodes ?? [];
+    const firstNode = nodes[0];
     const { criterion, level } = extractWcagCriterion(violation);
 
     return {
@@ -140,7 +141,7 @@ export function mapAxeResultToPayload(
       wcagCriterionName: violation.help,
       wcagLevel: level,
       principle: PRINCIPLE_MAP[violation.id] ?? 'robust',
-      severity: IMPACT_MAP[violation.impact ?? 'minor'],
+      severity: IMPACT_MAP[violation.impact ?? 'minor'] ?? 'minor',
       description: violation.description,
       fixSuggestion:
         firstNode?.failureSummary?.replace('Fix any of the following: ', '') ??
@@ -148,12 +149,12 @@ export function mapAxeResultToPayload(
       helpUrl: violation.helpUrl,
       codeSnippet: firstNode ? axeNodeToCodeSnippet(firstNode) : '',
       codeFixExample: '', // axe-core does not provide fix examples; empty string
-      affectedCount: violation.nodes.length,
+      affectedCount: nodes.length,
       hasBeforeAfter: false, // live axe results don't have before/after demos
     };
   });
 
-  const levelBreakdown = calculateLevelBreakdownFromAxe(issues, axeResults.passes);
+  const levelBreakdown = calculateLevelBreakdownFromAxe(issues, axeResults.passes ?? []);
   const overallScore = calculateOverallScore(levelBreakdown);
 
   return {
@@ -167,7 +168,7 @@ export function mapAxeResultToPayload(
     levelBreakdown,
     principleBreakdown: buildPrincipleBreakdown(issues),
     issues,
-    passingCriteria: axeResults.passes.map((p) => {
+    passingCriteria: (axeResults.passes ?? []).map((p) => {
       const { criterion, level } = extractWcagCriterion(p);
       return {
         wcagCriterion: criterion,
@@ -177,7 +178,7 @@ export function mapAxeResultToPayload(
       };
     }),
     totalElements:
-      axeResults.violations.reduce((sum, v) => sum + v.nodes.length, 0) +
-      axeResults.passes.reduce((sum, p) => sum + p.nodes.length, 0),
+      axeResults.violations.reduce((sum, v) => sum + (v.nodes?.length ?? 0), 0) +
+      (axeResults.passes ?? []).reduce((sum, p) => sum + (p.nodes?.length ?? 0), 0),
   };
 }
