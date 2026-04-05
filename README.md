@@ -177,6 +177,8 @@ npm run typecheck    # TypeScript check (tsc --noEmit)
 
 ## Demo Walkthrough
 
+**Live Demo:** https://accesslens-dtockenpl-zuma3247s-projects.vercel.app
+
 Watch the 3-minute feature demonstration: **[Loom Walkthrough](loom-link-to-be-added)**
 
 Walkthrough covers:
