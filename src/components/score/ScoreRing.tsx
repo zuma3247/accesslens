@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import type { WcagLevel } from '@/types/audit.types';
+import type { WcagLevel, LevelBreakdown } from '@/types/audit.types';
 
 interface ScoreRingProps {
   score: number;
   grade: WcagLevel | 'Fail';
   isFallback?: boolean | undefined;
+  levelBreakdown?: LevelBreakdown;
 }
 
 const RADIUS = 100;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export function ScoreRing({ score, grade, isFallback }: ScoreRingProps) {
+export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRingProps) {
   const shouldReduceMotion = useReducedMotion();
   const [animatedScore, setAnimatedScore] = useState(shouldReduceMotion ? score : 0);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // Calculate stroke dash offset based on score
   const strokeDashoffset = CIRCUMFERENCE * (1 - score / 100);
@@ -35,29 +37,53 @@ export function ScoreRing({ score, grade, isFallback }: ScoreRingProps) {
     const duration = 750;
     const startTime = performance.now();
     const startValue = 0;
+    let rafId: number;
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Quartic ease-out for more deliberate feel (fast start, slow settle)
       const easeOut = 1 - Math.pow(1 - progress, 4);
       const currentValue = Math.round(startValue + (score - startValue) * easeOut);
-      
+
       setAnimatedScore(currentValue);
-      
+
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(rafId);
   }, [score, shouldReduceMotion]);
 
   const ariaLabel = `Accessibility compliance score: ${score} percent, grade ${grade}`;
 
+  const tooltipText = levelBreakdown
+    ? `Level A: ${levelBreakdown.A.passing}/${levelBreakdown.A.total} passing · Level AA: ${levelBreakdown.AA.passing}/${levelBreakdown.AA.total} · Level AAA: ${levelBreakdown.AAA.passing}/${levelBreakdown.AAA.total}`
+    : undefined;
+
   return (
     <div className="flex flex-col items-center">
+      <div
+        className="relative"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
+        tabIndex={0}
+        role="group"
+      >
+        {showTooltip && tooltipText && (
+          <div
+            role="tooltip"
+            className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 text-xs font-medium text-[hsl(var(--color-text-inverse))] bg-[hsl(var(--slate-800))] dark:bg-[hsl(var(--slate-200))] dark:text-[hsl(var(--slate-900))] rounded-md shadow-md z-10"
+          >
+            {tooltipText}
+          </div>
+        )}
       <svg
         viewBox="0 0 240 240"
         className="w-48 h-48"
@@ -118,7 +144,8 @@ export function ScoreRing({ score, grade, isFallback }: ScoreRingProps) {
           {grade === 'Fail' ? 'Fail' : grade}
         </text>
       </svg>
-      
+      </div>
+
       {/* Target label */}
       <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] tracking-[0.08em] uppercase">
         WCAG 2.2 Target: AA

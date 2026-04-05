@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { AuditPayload } from '@/types/audit.types';
 import { generateBatchPrompt } from '@/lib/promptGenerator';
 
@@ -14,8 +14,15 @@ const COPY_TIMEOUT = 2500;
 export function useBatchCopy(payload: AuditPayload): UseBatchCopyReturn {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const promptText = generateBatchPrompt(payload);
+  const promptText = useMemo(() => generateBatchPrompt(payload), [payload]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const copy = useCallback(async () => {
     if (!promptText) return false;
@@ -25,7 +32,8 @@ export function useBatchCopy(payload: AuditPayload): UseBatchCopyReturn {
     try {
       await navigator.clipboard.writeText(promptText);
       setCopied(true);
-      setTimeout(() => setCopied(false), COPY_TIMEOUT);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), COPY_TIMEOUT);
       return true;
     } catch {
       setError(true);

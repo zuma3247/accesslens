@@ -50,13 +50,19 @@ const PRINCIPLE_MAP: Record<string, WcagPrinciple> = {
 };
 
 function extractWcagCriterion(result: Result): { criterion: string; level: WcagLevel } {
-  // axe-core tags include wcag tags like "wcag143", "wcag111"
+  // axe-core tags include wcag tags like "wcag143", "wcag111", "wcag1411"
   const wcagTag = result.tags.find((t) => /^wcag\d{3,}$/.test(t));
   if (!wcagTag) return { criterion: 'Best Practice', level: 'AA' };
 
-  // "wcag143" → "1.4.3"
+  // WCAG criteria follow the pattern: {principle}.{guideline}.{criterion}
+  // The first digit is always the principle (1-4), second is always the guideline,
+  // and the remaining digits form the criterion number (can be multi-digit).
+  // "wcag143" → "1.4.3", "wcag1411" → "1.4.11", "wcag258" → "2.5.8"
   const digits = wcagTag.replace('wcag', '');
-  const criterion = digits.split('').join('.').replace(/\.(\d)$/, '.$1');
+  const principle = digits[0];
+  const guideline = digits[1];
+  const criterionNum = digits.slice(2);
+  const criterion = `${principle}.${guideline}.${criterionNum}`;
 
   const level: WcagLevel = result.tags.includes('wcag2aaa')
     ? 'AAA'
@@ -157,12 +163,15 @@ export function mapAxeResultToPayload(
     levelBreakdown,
     principleBreakdown: buildPrincipleBreakdown(issues),
     issues,
-    passingCriteria: axeResults.passes.map((p) => ({
-      wcagCriterion: p.id,
-      wcagCriterionName: p.help,
-      wcagLevel: 'AA' as WcagLevel,
-      principle: PRINCIPLE_MAP[p.id] ?? 'robust',
-    })),
+    passingCriteria: axeResults.passes.map((p) => {
+      const { criterion, level } = extractWcagCriterion(p);
+      return {
+        wcagCriterion: criterion,
+        wcagCriterionName: p.help,
+        wcagLevel: level,
+        principle: PRINCIPLE_MAP[p.id] ?? 'robust',
+      };
+    }),
     totalElements:
       axeResults.violations.reduce((sum, v) => sum + v.nodes.length, 0) +
       axeResults.passes.reduce((sum, p) => sum + p.nodes.length, 0),

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { scaleSequential } from 'd3-scale';
 import { interpolateRgb } from 'd3-interpolate';
 import type { HeatmapGrid, WcagPrinciple, IssueSeverity, HeatmapFilter } from '@/types/audit.types';
+import { useTheme } from '@/hooks/useTheme';
 
 interface IssueHeatmapProps {
   grid: HeatmapGrid;
@@ -27,6 +28,8 @@ const severityLabels: Record<IssueSeverity, string> = {
 };
 
 export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapProps) {
+  const { theme } = useTheme();
+
   // Find max count for color scale
   const maxCount = useMemo(() => {
     let max = 0;
@@ -38,11 +41,13 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
     return Math.max(max, 1); // Prevent division by zero
   }, [grid]);
 
-  // Create color scale
+  // Create theme-aware color scale
   const colorScale = useMemo(() => {
-    return scaleSequential(interpolateRgb('hsl(220, 13%, 91%)', 'hsl(0, 72%, 45%)'))
+    const lowColor = theme === 'dark' ? 'hsl(220, 14%, 22%)' : 'hsl(220, 13%, 91%)';
+    const highColor = theme === 'dark' ? 'hsl(0, 60%, 38%)' : 'hsl(0, 72%, 45%)';
+    return scaleSequential(interpolateRgb(lowColor, highColor))
       .domain([0, maxCount]);
-  }, [maxCount]);
+  }, [maxCount, theme]);
 
   const getCellColor = (count: number) => {
     if (count === 0) return 'hsl(var(--color-bg-surface))';
@@ -105,6 +110,7 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
                     `}
                     style={{ backgroundColor: getCellColor(count) }}
                     tabIndex={0}
+                    title={count > 0 && cell?.topViolationName ? `Top issue: ${cell.topViolationName} — ${count} affected elements` : undefined}
                     aria-label={`${principleLabels[principle]}, ${severityLabels[severity]}: ${count} issues${cell?.topViolationName ? `. Top violation: ${cell.topViolationName}` : ''}`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -119,7 +125,7 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
                   >
                     <span
                       className={`text-sm font-medium ${
-                        count > 0 ? 'text-[hsl(var(--slate-900))]' : 'text-[hsl(var(--slate-400))]'
+                        count > 0 ? 'text-[hsl(var(--color-text-primary))]' : 'text-[hsl(var(--color-text-disabled))]'
                       }`}
                     >
                       {count > 0 ? count : '—'}

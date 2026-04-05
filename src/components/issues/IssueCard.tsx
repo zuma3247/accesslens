@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink, ClipboardCopy, Check } from 'lucide-react';
 import type { Issue } from '@/types/audit.types';
 import { SeverityBadge } from './SeverityBadge';
 import { CopyFixPromptButton } from '../prompt/CopyFixPromptButton';
@@ -11,6 +11,47 @@ interface IssueCardProps {
   onToggle: () => void;
   isSelected?: boolean;
   onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
+}
+
+function CodeFixExample({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Silently fail — the full prompt copy button is the primary action
+    }
+  }, [code]);
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
+        Example fix:
+      </p>
+      <div className="relative group">
+        <code className="block p-3 pr-10 bg-[hsl(var(--color-code-example-bg))] text-[hsl(var(--color-code-example-text))] rounded-md text-sm font-mono overflow-x-auto">
+          {code}
+        </code>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="absolute top-2 right-2 p-1.5 rounded-md bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+          aria-label="Copy code fix example to clipboard"
+        >
+          {copied ? (
+            <Check className="w-3.5 h-3.5 text-[hsl(var(--color-success))]" aria-hidden="true" />
+          ) : (
+            <ClipboardCopy className="w-3.5 h-3.5 text-[hsl(var(--color-text-secondary))]" aria-hidden="true" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBeforeAfter }: IssueCardProps) {
@@ -128,14 +169,7 @@ export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBefor
 
             {/* Code Fix Example */}
             {issue.codeFixExample && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
-                  Example fix:
-                </p>
-                <code className="block p-3 bg-[hsl(var(--color-code-example-bg))] text-[hsl(var(--color-code-example-text))] rounded-md text-sm font-mono overflow-x-auto">
-                  {issue.codeFixExample}
-                </code>
-              </div>
+              <CodeFixExample code={issue.codeFixExample} />
             )}
 
             {/* Action Buttons */}

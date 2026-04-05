@@ -61,7 +61,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         {/* Left Panel - Score Overview */}
         <div className="lg:col-span-3 space-y-6">
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <ScoreRing score={payload.overallScore} grade={payload.grade} isFallback={payload.isFallback} />
+            <ScoreRing score={payload.overallScore} grade={payload.grade} isFallback={payload.isFallback} levelBreakdown={payload.levelBreakdown} />
           </div>
           
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">

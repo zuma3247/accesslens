@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Issue } from '@/types/audit.types';
 import { generateSinglePrompt } from '@/lib/promptGenerator';
 
@@ -13,6 +13,13 @@ const COPY_TIMEOUT = 2500;
 export function useCopyPrompt(issue: Issue): UseCopyPromptReturn {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const copy = useCallback(async () => {
     setError(false);
@@ -21,7 +28,8 @@ export function useCopyPrompt(issue: Issue): UseCopyPromptReturn {
     try {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);
-      setTimeout(() => setCopied(false), COPY_TIMEOUT);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), COPY_TIMEOUT);
     } catch {
       setError(true);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { ImpairmentKey } from '@/types/audit.types';
 import { EmulationContext } from './emulation-context';
+import { IMPAIRMENT_FILTERS } from '@/data/impairmentFilters';
 
 interface EmulationProviderProps {
   children: ReactNode;
@@ -26,12 +27,16 @@ export function EmulationProvider({ children }: EmulationProviderProps) {
       appRoot.style.filter = `url(#filter-${activeImpairment})`;
     }
 
-    // Announce change to screen readers
+    // Announce change to screen readers with human-readable name and description
     if (ariaLiveRef.current) {
-      ariaLiveRef.current.textContent = 
-        activeImpairment === 'none' 
-          ? 'Vision emulation disabled.' 
-          : `Now simulating ${activeImpairment}.`;
+      if (activeImpairment === 'none') {
+        ariaLiveRef.current.textContent = 'Vision emulation disabled.';
+      } else {
+        const filter = IMPAIRMENT_FILTERS.find((f) => f.key === activeImpairment);
+        const label = filter?.label ?? activeImpairment;
+        const desc = filter?.description ? ` ${filter.description}` : '';
+        ariaLiveRef.current.textContent = `Now simulating ${label}.${desc}`;
+      }
     }
   }, [activeImpairment]);
 
