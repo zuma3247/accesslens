@@ -1,5 +1,9 @@
 import axe from 'axe-core';
 import type { AxeResults } from 'axe-core';
+// Raw import bypasses Vite's bundler transformation. axe.source uses axeFunction.toString()
+// which, after minification, references mangled closure variables that don't exist in the
+// iframe scope. The raw pre-built UMD file is self-contained and eval-safe.
+import axeSourceRaw from 'axe-core/axe.min.js?raw';
 
 /**
  * Parse HTML in an inert Document via DOMParser (scripts do not run during parse),
@@ -45,7 +49,7 @@ function createAuditIframe(): HTMLIFrameElement {
 function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: typeof axe }): typeof axe {
   // Indirect eval executes in the iframe's global scope, reliably setting window.axe.
   // Script element injection doesn't work reliably on documents created via document.write().
-  (0, iframeWindow.eval)(axe.source);
+  (0, iframeWindow.eval)(axeSourceRaw);
 
   if (!iframeWindow.axe) {
     throw new Error('Failed to inject axe-core into the audit iframe.');
