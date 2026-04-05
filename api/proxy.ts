@@ -1,141 +1,119 @@
-// Vercel serverless function API route
-// Note: This uses Vercel's runtime API, not Next.js
+type QueryValue = string | string[] | undefined;
 
-// Security: Block private IP ranges and localhost
+interface VercelRequestLike {
+  method?: string;
+  query: Record<string, QueryValue>;
+}
+
+interface VercelResponseLike {
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => VercelResponseLike;
+  json: (body: unknown) => void;
+  send: (body: string) => void;
+  end: () => void;
+}
+
 const PRIVATE_IP_PATTERNS = [
-  /^127\./,      // 127.0.0.0/8 (localhost)
-  /^10\./,       // 10.0.0.0/8 (private)
-  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,  // 172.16.0.0/12 (private)
-  /^192\.168\./, // 192.168.0.0/16 (private)
-  /^169\.254\./, // 169.254.0.0/16 (link-local)
-  /^::1$/,       // IPv6 localhost
-  /^fc00:/,      // IPv6 unique local
-  /^fe80:/,      // IPv6 link-local
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^::1$/,
+  /^fc00:/,
+  /^fe80:/,
 ];
+
+function getFirstQueryValue(value: QueryValue): string | null {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value) && value.length > 0) return value[0];
+  return null;
+}
+
+function setCorsHeaders(res: VercelResponseLike): void {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
 
 function isValidUrl(url: string): { valid: boolean; error?: string } {
   try {
     const parsed = new URL(url);
-    
-    // Only allow http/https
+
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return { valid: false, error: 'Only HTTP/HTTPS URLs are allowed' };
     }
-    
-    // Block private IPs and localhost
+
     const hostname = parsed.hostname;
     for (const pattern of PRIVATE_IP_PATTERNS) {
       if (pattern.test(hostname)) {
         return { valid: false, error: 'Private IP addresses are not allowed' };
       }
     }
-    
+
     return { valid: true };
   } catch {
     return { valid: false, error: 'Invalid URL format' };
   }
 }
 
-export default async function handler(request: Request) {
-  const url = new URL(request.url);
-  const rawUrl = url.searchParams.get('url');
-  
-  if (!rawUrl) {
-    return Response.json(
-      { error: 'Missing url parameter' },
-      { status: 400 }
-    );
+export default async function handler(req: VercelRequestLike, res: VercelResponseLike) {
+  setCorsHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
-  
-  // Validate URL
+
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const rawUrl = getFirstQueryValue(req.query.url);
+  if (!rawUrl) {
+    res.status(400).json({ error: 'Missing url parameter' });
+    return;
+  }
+
   const validation = isValidUrl(rawUrl);
   if (!validation.valid) {
-    return Response.json(
-      { error: validation.error },
-      { status: 400 }
-    );
+    res.status(400).json({ error: validation.error });
+    return;
   }
-  
+
   try {
-    // Add rate limiting headers
-    const headers = new Headers({
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Cache-Control': 'public, max-age=300', // 5 minutes cache
-    });
-    
-    // Fetch the URL with browser-like headers
     const response = await fetch(rawUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
       },
-      signal: AbortSignal.timeout(10000), // 10 second timeout
+      signal: AbortSignal.timeout(10000),
     });
-    
-    if (!response.ok) {
-      return Response.json(
-        { error: `HTTP ${response.status}: ${response.statusText}` },
-        { status: response.status }
-      );
-    }
-    
-    const html = await response.text();
-    
-    // Basic validation that we got HTML
-    if (!html || !/<html|<body|<!doctype/i.test(html)) {
-      return Response.json(
-        { error: 'URL did not return valid HTML content' },
-        { status: 400 }
-      );
-    }
-    
-    // Return the HTML with appropriate headers
-    return new Response(html, {
-      status: 200,
-      headers,
-    });
-    
-  } catch (error) {
-    console.error('Proxy fetch error:', error);
-    
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        return Response.json(
-          { error: 'Request timeout (10s limit)' },
-          { status: 408 }
-        );
-      }
-      
-      if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
-        return Response.json(
-          { error: 'Unable to connect to the specified URL' },
-          { status: 502 }
-        );
-      }
-    }
-    
-    return Response.json(
-      { error: 'Failed to fetch URL' },
-      { status: 500 }
-    );
-  }
-}
 
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+    if (!response.ok) {
+      res.status(response.status).json({ error: `HTTP ${response.status}: ${response.statusText}` });
+      return;
+    }
+
+    const html = await response.text();
+    if (!html || !/<html|<body|<!doctype/i.test(html)) {
+      res.status(400).json({ error: 'URL did not return valid HTML content' });
+      return;
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(200).send(html);
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      res.status(408).json({ error: 'Request timeout (10s limit)' });
+      return;
+    }
+
+    res.status(500).json({ error: 'Failed to fetch URL' });
+  }
 }
