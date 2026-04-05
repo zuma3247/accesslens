@@ -12,11 +12,25 @@ function App() {
   const { theme } = useTheme();
   const { viewState, auditResult, heatmapGrid, runAudit, reset } = useAudit();
 
+  const handleSkipToMain = () => {
+    const mainContent = document.getElementById('app-root');
+    mainContent?.focus();
+  };
+
   return (
     <EmulationProvider>
       <div className="min-h-screen bg-[hsl(var(--color-bg-base))] text-[hsl(var(--color-text-primary))]" data-theme={theme}>
         {/* SVG Filter Definitions - injected via portal */}
         <SVGFilterDefs />
+
+        {/* Skip to main content link */}
+        <a
+          href="#app-root"
+          onClick={handleSkipToMain}
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[hsl(var(--color-bg-elevated))] focus:border focus:border-[hsl(var(--indigo-400))] focus:rounded-md focus:text-[hsl(var(--color-text-primary))] focus:font-medium focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
 
         {/* Top Navigation */}
         <TopNav
@@ -26,7 +40,7 @@ function App() {
         />
 
         {/* Main Content Area */}
-        <main id="app-root" className="relative">
+        <main id="app-root" tabIndex={-1} className="relative" role="main" aria-label="Accessibility audit results">
           {viewState === 'idle' && (
             <div className="px-6 py-12">
               <InputPanel
