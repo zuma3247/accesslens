@@ -42,10 +42,10 @@ function createAuditIframe(): HTMLIFrameElement {
   return iframe;
 }
 
-function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: typeof axe }, auditDocument: Document): typeof axe {
-  const script = auditDocument.createElement('script');
-  script.textContent = axe.source;
-  auditDocument.head.appendChild(script);
+function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: typeof axe }): typeof axe {
+  // Indirect eval executes in the iframe's global scope, reliably setting window.axe.
+  // Script element injection doesn't work reliably on documents created via document.write().
+  (0, iframeWindow.eval)(axe.source);
 
   if (!iframeWindow.axe) {
     throw new Error('Failed to inject axe-core into the audit iframe.');
@@ -68,7 +68,7 @@ export async function runLiveAxeAudit(htmlString: string, cssString?: string): P
     if (!auditDocument.documentElement || !auditDocument.body) {
       throw new Error('Audit iframe document was corrupted during HTML population.');
     }
-    const iframeAxe = injectAxeIntoIframe(iframeWindow, auditDocument);
+    const iframeAxe = injectAxeIntoIframe(iframeWindow);
 
     const results = await iframeAxe.run(auditDocument, {
       runOnly: {
