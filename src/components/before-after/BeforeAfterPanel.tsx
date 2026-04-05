@@ -109,15 +109,15 @@ export function BeforeAfterPanel({ issue, isOpen, onClose }: BeforeAfterPanelPro
             duration: prefersReducedMotion ? 0 : 0.25, 
             ease: 'easeInOut' 
           }}
-          className="fixed inset-x-0 bottom-0 top-[60px] bg-[hsl(var(--color-bg-surface))] border-t border-[hsl(var(--color-border))] z-50"
+          className="fixed inset-x-0 bottom-0 top-0 md:top-[60px] bg-[hsl(var(--color-bg-surface))] border-t border-[hsl(var(--color-border))] z-50"
           role="dialog"
           aria-modal="true"
           aria-labelledby="before-after-title"
           onKeyDown={handlePanelKeyDown}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))]">
-            <h2 id="before-after-title" className="text-lg font-semibold text-[hsl(var(--color-text-primary))]">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[hsl(var(--color-border))]">
+            <h2 id="before-after-title" className="text-base md:text-lg font-semibold text-[hsl(var(--color-text-primary))]">
               Before/After: {issue.wcagCriterion} {issue.wcagCriterionName}
             </h2>
             <button

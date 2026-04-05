@@ -12,39 +12,41 @@ describe('getSeedForUrl', () => {
     ];
 
     for (const url of urls) {
-      const result = await getSeedForUrl(url);
-      expect(result).toBeDefined();
-      expect(result.auditedInput).toBe(url);
+      const { payload, isFallback } = await getSeedForUrl(url);
+      expect(payload).toBeDefined();
+      expect(isFallback).toBe(false);
+      expect(payload.auditedInput).toBe(url);
     }
   });
 
-  it('returns ecommerce seed for unrecognized URL', async () => {
-    const result = await getSeedForUrl('demo.accesslens.app/unknown');
-    expect(result).toBeDefined();
-    expect(result.auditedInput).toBe('demo.accesslens.app/ecommerce');
+  it('returns ecommerce seed for unrecognized URL with isFallback true', async () => {
+    const { payload, isFallback } = await getSeedForUrl('demo.accesslens.app/unknown');
+    expect(payload).toBeDefined();
+    expect(isFallback).toBe(true);
+    expect(payload.auditedInput).toBe('demo.accesslens.app/ecommerce');
   });
 
   it('normalizes URL with trailing slash', async () => {
-    const result = await getSeedForUrl('demo.accesslens.app/dashboard/');
-    expect(result).toBeDefined();
-    expect(result.auditedInput).toBe('demo.accesslens.app/dashboard');
+    const { payload } = await getSeedForUrl('demo.accesslens.app/dashboard/');
+    expect(payload).toBeDefined();
+    expect(payload.auditedInput).toBe('demo.accesslens.app/dashboard');
   });
 
   it('normalizes URL with https:// prefix', async () => {
-    const result = await getSeedForUrl('https://demo.accesslens.app/dashboard');
-    expect(result).toBeDefined();
-    expect(result.auditedInput).toBe('demo.accesslens.app/dashboard');
+    const { payload } = await getSeedForUrl('https://demo.accesslens.app/dashboard');
+    expect(payload).toBeDefined();
+    expect(payload.auditedInput).toBe('demo.accesslens.app/dashboard');
   });
 
   it('normalizes URL with http:// prefix', async () => {
-    const result = await getSeedForUrl('http://demo.accesslens.app/dashboard');
-    expect(result).toBeDefined();
-    expect(result.auditedInput).toBe('demo.accesslens.app/dashboard');
+    const { payload } = await getSeedForUrl('http://demo.accesslens.app/dashboard');
+    expect(payload).toBeDefined();
+    expect(payload.auditedInput).toBe('demo.accesslens.app/dashboard');
   });
 
   it('is case insensitive', async () => {
-    const result = await getSeedForUrl('DEMO.ACCESSLENS.APP/DASHBOARD');
-    expect(result).toBeDefined();
-    expect(result.auditedInput).toBe('demo.accesslens.app/dashboard');
+    const { payload } = await getSeedForUrl('DEMO.ACCESSLENS.APP/DASHBOARD');
+    expect(payload).toBeDefined();
+    expect(payload.auditedInput).toBe('demo.accesslens.app/dashboard');
   });
 });

@@ -103,7 +103,7 @@ export function FilterBar({
       <button
         type="button"
         onClick={handleSortClick}
-        className="px-3 py-1 text-sm font-medium text-[hsl(var(--color-text-secondary))] bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--slate-200))] transition-colors focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))]"
+        className="px-3 py-1 text-sm font-medium text-[hsl(var(--color-text-secondary))] bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--color-bg-surface))] transition-colors focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))]"
       >
         {sortLabels[sortMode]}
       </button>

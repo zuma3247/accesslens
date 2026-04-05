@@ -26,15 +26,16 @@ export function CopyFixPromptButton({ issue }: CopyFixPromptButtonProps) {
         aria-label={`Copy accessibility fix prompt for ${issue.wcagCriterion} ${issue.wcagCriterionName} to clipboard`}
       >
         <span aria-live="polite" className="inline-flex items-center gap-1.5">
+          <span className="sr-only">{copied ? 'Copied!' : 'Copy Fix Prompt'}</span>
           {copied ? (
             <>
               <Check className="w-4 h-4" aria-hidden="true" />
-              <span>Copied!</span>
+              <span className="hidden md:inline">Copied!</span>
             </>
           ) : (
             <>
               <ClipboardCopy className="w-4 h-4" aria-hidden="true" />
-              <span>Copy Fix Prompt</span>
+              <span className="hidden md:inline">Copy Fix Prompt</span>
             </>
           )}
         </span>

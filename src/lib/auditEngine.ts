@@ -15,7 +15,7 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
   }
 
   // URL mode: load matching seed file
-  const seed = await getSeedForUrl(input.value);
+  const { payload: seed, isFallback } = await getSeedForUrl(input.value);
 
   // Stamp a fresh ID and timestamp so repeated scans look like new audits
   return {
@@ -23,5 +23,6 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
     id: generateId(),
     auditedInput: input.value,
     auditedAt: new Date().toISOString(),
+    isFallback,
   };
 }

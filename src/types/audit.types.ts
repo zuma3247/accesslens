@@ -39,6 +39,7 @@ export interface AuditPayload {
   issues: Issue[];
   passingCriteria: PassingCriterion[];
   totalElements: number;
+  isFallback?: boolean;
 }
 
 // ============================================

@@ -61,7 +61,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         {/* Left Panel - Score Overview */}
         <div className="lg:col-span-3 space-y-6">
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
-            <ScoreRing score={payload.overallScore} grade={payload.grade} />
+            <ScoreRing score={payload.overallScore} grade={payload.grade} isFallback={payload.isFallback} />
           </div>
           
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
@@ -86,12 +86,18 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             />
           </div>
 
-          {/* Copy All Button */}
-          <div className="flex justify-end">
-            <CopyAllCriticalButton
-              payload={payload}
-              onModalOpen={() => setIsBatchModalOpen(true)}
-            />
+          {/* Copy All Button - sticky on mobile, static on desktop */}
+          <div className="md:flex md:justify-end">
+            <div className="fixed bottom-20 left-0 right-0 p-4 bg-[hsl(var(--color-bg-surface))] border-t border-[hsl(var(--color-border))] md:static md:p-0 md:bg-transparent md:border-0 z-50 md:z-auto">
+              <div className="flex justify-end max-w-7xl mx-auto md:max-w-none">
+                <CopyAllCriticalButton
+                  payload={payload}
+                  onModalOpen={() => setIsBatchModalOpen(true)}
+                />
+              </div>
+            </div>
+            {/* Spacer for mobile sticky bar */}
+            <div className="h-28 md:hidden" />
           </div>
 
           {/* Issue List */}

@@ -1,5 +1,10 @@
 import type { AuditPayload } from '@/types/audit.types';
 
+export interface SeedResult {
+  payload: AuditPayload;
+  isFallback: boolean;
+}
+
 // Each seed is dynamically imported — Vite code-splits them into separate chunks
 const URL_SEED_MAP: Record<string, () => Promise<{ default: AuditPayload }>> = {
   'demo.accesslens.app/ecommerce': () => import('@/data/seeds/audit-ecommerce.json').then(m => ({ default: m.default as AuditPayload })),
@@ -11,14 +16,15 @@ const URL_SEED_MAP: Record<string, () => Promise<{ default: AuditPayload }>> = {
 
 const FALLBACK_SEED = 'demo.accesslens.app/ecommerce';
 
-export async function getSeedForUrl(rawUrl: string): Promise<AuditPayload> {
+export async function getSeedForUrl(rawUrl: string): Promise<SeedResult> {
   // Normalize: strip protocol and trailing slash
   const normalized = rawUrl
     .replace(/^https?:\/\//, '')
     .replace(/\/$/, '')
     .toLowerCase();
 
+  const isFallback = !URL_SEED_MAP[normalized];
   const loader = URL_SEED_MAP[normalized] ?? URL_SEED_MAP[FALLBACK_SEED];
   const module = await loader();
-  return module.default;
+  return { payload: module.default, isFallback };
 }

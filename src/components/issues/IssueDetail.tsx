@@ -56,7 +56,7 @@ export function IssueDetail({ issue, onOpenBeforeAfter }: IssueDetailProps) {
         <p className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
           Affected element:
         </p>
-        <code className="block p-3 bg-[hsl(var(--slate-900))] text-[hsl(var(--slate-50))] rounded-md text-sm font-mono overflow-x-auto">
+        <code className="block p-3 bg-[hsl(var(--color-code-bg))] text-[hsl(var(--color-code-text))] rounded-md text-sm font-mono overflow-x-auto">
           {issue.codeSnippet}
         </code>
       </div>
@@ -79,7 +79,7 @@ export function IssueDetail({ issue, onOpenBeforeAfter }: IssueDetailProps) {
           <p className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
             Example fix:
           </p>
-          <code className="block p-3 bg-[hsl(var(--slate-100))] dark:bg-[hsl(var(--slate-800))] text-[hsl(var(--slate-900))] dark:text-[hsl(var(--slate-100))] rounded-md text-sm font-mono overflow-x-auto">
+          <code className="block p-3 bg-[hsl(var(--color-code-example-bg))] text-[hsl(var(--color-code-example-text))] rounded-md text-sm font-mono overflow-x-auto">
             {issue.codeFixExample}
           </code>
         </div>

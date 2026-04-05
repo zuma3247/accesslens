@@ -88,6 +88,12 @@
   --color-copied-bg: hsl(142 65% 95%);
   --color-copied-text: hsl(142 55% 28%);
 
+  /* Code blocks */
+  --color-code-bg: hsl(var(--slate-900));
+  --color-code-text: hsl(var(--slate-50));
+  --color-code-example-bg: hsl(var(--slate-100));
+  --color-code-example-text: hsl(var(--slate-900));
+
   /* Typography */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -173,6 +179,12 @@
   --color-copy-btn-hover: hsl(var(--slate-700));
   --color-copied-bg: hsl(142 40% 18%);
   --color-copied-text: hsl(142 60% 72%);
+
+  /* Code blocks */
+  --color-code-bg: hsl(var(--slate-800));
+  --color-code-text: hsl(var(--slate-50));
+  --color-code-example-bg: hsl(var(--slate-900));
+  --color-code-example-text: hsl(var(--slate-50));
 
   --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
   --shadow-md: 0 4px 8px -2px hsl(0 0% 0% / 0.28),

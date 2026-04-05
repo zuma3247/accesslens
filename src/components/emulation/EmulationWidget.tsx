@@ -39,8 +39,7 @@ export function EmulationWidget() {
   return (
     <div
       ref={widgetRef}
-      className="fixed bottom-6 right-6 z-[9999]"
-      style={{ position: 'fixed', bottom: '24px', right: '24px' }}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 z-[9999]"
     >
       <AnimatePresence mode="wait">
         {isExpanded ? (

@@ -5,12 +5,13 @@ import type { WcagLevel } from '@/types/audit.types';
 interface ScoreRingProps {
   score: number;
   grade: WcagLevel | 'Fail';
+  isFallback?: boolean | undefined;
 }
 
 const RADIUS = 100;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export function ScoreRing({ score, grade }: ScoreRingProps) {
+export function ScoreRing({ score, grade, isFallback }: ScoreRingProps) {
   const shouldReduceMotion = useReducedMotion();
   const [animatedScore, setAnimatedScore] = useState(shouldReduceMotion ? score : 0);
 
@@ -31,7 +32,7 @@ export function ScoreRing({ score, grade }: ScoreRingProps) {
       return;
     }
 
-    const duration = 600;
+    const duration = 750;
     const startTime = performance.now();
     const startValue = 0;
 
@@ -39,8 +40,8 @@ export function ScoreRing({ score, grade }: ScoreRingProps) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Ease out function
-      const easeOut = 1 - Math.pow(1 - progress, 3);
+      // Quartic ease-out for more deliberate feel (fast start, slow settle)
+      const easeOut = 1 - Math.pow(1 - progress, 4);
       const currentValue = Math.round(startValue + (score - startValue) * easeOut);
       
       setAnimatedScore(currentValue);
@@ -87,8 +88,11 @@ export function ScoreRing({ score, grade }: ScoreRingProps) {
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           initial={{ strokeDashoffset: CIRCUMFERENCE }}
-          animate={{ strokeDashoffset: shouldReduceMotion ? strokeDashoffset : strokeDashoffset }}
-          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
+          animate={{ strokeDashoffset: strokeDashoffset }}
+          transition={shouldReduceMotion ? { duration: 0 } : { 
+            duration: 0.9, 
+            ease: [0.22, 1, 0.36, 1]
+          }}
           transform="rotate(-90 120 120)"
         />
         
@@ -119,6 +123,13 @@ export function ScoreRing({ score, grade }: ScoreRingProps) {
       <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] tracking-wide uppercase">
         WCAG 2.2 Target: AA
       </p>
+      
+      {/* Fallback notice */}
+      {isFallback && (
+        <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] text-center max-w-[200px]">
+          Showing results for a representative e-commerce page
+        </p>
+      )}
     </div>
   );
 }

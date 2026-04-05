@@ -98,7 +98,7 @@ export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBefor
                 </p>
               </div>
               <div className="relative">
-                <code className="block p-3 bg-[hsl(var(--slate-900))] text-[hsl(var(--slate-50))] rounded-md text-sm font-mono overflow-x-auto">
+                <code className="block p-3 bg-[hsl(var(--color-code-bg))] text-[hsl(var(--color-code-text))] rounded-md text-sm font-mono overflow-x-auto">
                   {truncatedCode}
                 </code>
                 {issue.codeSnippet.length > 120 && (
@@ -131,7 +131,7 @@ export function IssueCard({ issue, isExpanded, onToggle, isSelected, onOpenBefor
                 <p className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">
                   Example fix:
                 </p>
-                <code className="block p-3 bg-[hsl(var(--slate-100))] dark:bg-[hsl(var(--slate-800))] text-[hsl(var(--slate-900))] dark:text-[hsl(var(--slate-100))] rounded-md text-sm font-mono overflow-x-auto">
+                <code className="block p-3 bg-[hsl(var(--color-code-example-bg))] text-[hsl(var(--color-code-example-text))] rounded-md text-sm font-mono overflow-x-auto">
                   {issue.codeFixExample}
                 </code>
               </div>

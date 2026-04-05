@@ -29,7 +29,7 @@ export function LevelBreakdown({ breakdown }: LevelBreakdownProps) {
             </div>
             
             {/* Progress bar */}
-            <div className="h-2 bg-[hsl(var(--slate-200))] rounded-full overflow-hidden">
+            <div className="h-2 bg-[hsl(var(--color-border))] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[hsl(var(--indigo-600))] rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
