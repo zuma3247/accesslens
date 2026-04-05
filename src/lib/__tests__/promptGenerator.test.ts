@@ -128,6 +128,7 @@ describe('generateBatchPrompt', () => {
     auditedInput: 'demo.accesslens.app/dashboard',
     auditedAt: '2026-04-03T10:00:00.000Z',
     source: 'mock',
+    scanMode: 'url',
     overallScore: 44,
     grade: 'Fail',
     levelBreakdown: {

@@ -161,6 +161,7 @@ export function mapAxeResultToPayload(
     auditedInput,
     auditedAt: new Date().toISOString(),
     source: 'live-axe',
+    scanMode: 'html',
     overallScore,
     grade: calculateGrade(overallScore),
     levelBreakdown,
