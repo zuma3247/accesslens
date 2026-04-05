@@ -99,10 +99,13 @@ export default async function handler(req: VercelRequestLike, res: VercelRespons
   }
 
   try {
+    // Avoid "Chrome/... Safari/..." in UA — some sites (notably w3.org) respond 403 to that pattern from server-side fetch.
     const response = await fetch(rawUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       signal: AbortSignal.timeout(10000),
     });
@@ -118,7 +121,8 @@ export default async function handler(req: VercelRequestLike, res: VercelRespons
       return;
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    // Prevent CDN/browser from revalidating with 304 + empty body (breaks fetch().text() on the client).
+    res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(html);
   } catch (error) {
