@@ -1,11 +1,11 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { Issue } from '@/types/audit.types';
 
 interface LivePreviewPanelProps {
   htmlContent: string;
   issues: Issue[];
-  isOpen: boolean;
-  onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapsed: () => void;
 }
 
 function sanitizeHtmlForPreview(html: string): string {
@@ -19,7 +19,13 @@ function sanitizeHtmlForPreview(html: string): string {
     /\s(href|src|xlink:href|formaction|action)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,
     (fullMatch, attrName: string, rawValue: string) => {
       const unquotedValue = rawValue.replace(/^['"]|['"]$/g, '');
-      const normalizedValue = unquotedValue.replace(/[\u0000-\u001F\u007F\s]+/g, '').toLowerCase();
+      const normalizedValue = Array.from(unquotedValue)
+        .filter((char) => {
+          const code = char.charCodeAt(0);
+          return code > 31 && code !== 127 && !/\s/.test(char);
+        })
+        .join('')
+        .toLowerCase();
       const isDangerousScheme =
         normalizedValue.startsWith('javascript:') ||
         normalizedValue.startsWith('vbscript:') ||
@@ -66,17 +72,40 @@ function buildHighlightCss(issues: Issue[]): string {
     moderate: { border: '#eab308', bg: 'rgba(234, 179, 8, 0.1)' },
     minor: { border: '#6b7280', bg: 'rgba(107, 114, 128, 0.1)' },
   };
+  const severityRank: Record<string, number> = {
+    critical: 4,
+    serious: 3,
+    moderate: 2,
+    minor: 1,
+  };
 
   const rules: string[] = [];
-  const seen = new Set<string>();
+  const selectorIssues = new Map<string, Issue[]>();
 
   for (const issue of issues) {
     const selector = extractSelectorFromCodeSnippet(issue.codeSnippet);
-    if (!selector || seen.has(selector)) continue;
-    seen.add(selector);
 
-    const colors = severityColors[issue.severity] || severityColors.minor;
-    const description = escapeCssString(`${issue.wcagCriterion}: ${issue.description}`);
+    if (!selector) {
+      continue;
+    }
+
+    const existingIssues = selectorIssues.get(selector) ?? [];
+    existingIssues.push(issue);
+    selectorIssues.set(selector, existingIssues);
+  }
+
+  for (const [selector, matchedIssues] of selectorIssues) {
+    const highestSeverityIssue = matchedIssues.reduce((highest, current) => {
+      return severityRank[current.severity] > severityRank[highest.severity] ? current : highest;
+    }, matchedIssues[0]);
+
+    const colors = severityColors[highestSeverityIssue.severity] || severityColors.minor;
+    const description = escapeCssString(
+      matchedIssues
+        .map((issue) => `${issue.wcagCriterion}: ${issue.description}`)
+        .filter((value, index, values) => values.indexOf(value) === index)
+        .join('\n')
+    );
 
     rules.push(`
       ${selector} {
@@ -129,10 +158,12 @@ function generateIframeContent(html: string, issues: Issue[]): string {
 </html>`;
 }
 
-export function LivePreviewPanel({ htmlContent, issues, isOpen, onClose }: LivePreviewPanelProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+export function LivePreviewPanel({
+  htmlContent,
+  issues,
+  isCollapsed,
+  onToggleCollapsed,
+}: LivePreviewPanelProps) {
 
   // Generate iframe srcdoc — memoized to avoid recompute on every render
   const iframeContent = useMemo(
@@ -140,133 +171,83 @@ export function LivePreviewPanel({ htmlContent, issues, isOpen, onClose }: LiveP
     [htmlContent, issues],
   );
 
-  // Focus trap helper
-  const getFocusableElements = useCallback(() => {
-    if (!modalRef.current) return [];
-    const focusable = modalRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    return Array.from(focusable) as HTMLElement[];
-  }, []);
-
-  // Handle tab key for focus trap
-  const handleTabKey = useCallback((e: KeyboardEvent) => {
-    const focusableElements = getFocusableElements();
-    if (focusableElements.length === 0) return;
-
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    if (e.shiftKey) {
-      if (document.activeElement === firstElement) {
-        e.preventDefault();
-        lastElement.focus();
-      }
-    } else {
-      if (document.activeElement === lastElement) {
-        e.preventDefault();
-        firstElement.focus();
-      }
-    }
-  }, [getFocusableElements]);
-
-  // Keyboard navigation — only active when open
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      } else if (e.key === 'Tab') {
-        handleTabKey(e);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    // Focus close button on open
-    const timerId = setTimeout(() => {
-      closeButtonRef.current?.focus();
-    }, 100);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      clearTimeout(timerId);
-    };
-  }, [isOpen, onClose, handleTabKey]);
-
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
+  const severityCounts = useMemo(
+    () => ({
+      critical: issues.filter((i) => i.severity === 'critical').length,
+      serious: issues.filter((i) => i.severity === 'serious').length,
+      moderate: issues.filter((i) => i.severity === 'moderate').length,
+      minor: issues.filter((i) => i.severity === 'minor').length,
+    }),
+    [issues],
+  );
 
   return (
-    <div
-      ref={modalRef}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="live-preview-title"
-    >
-      <div className="w-full max-w-5xl h-[80vh] bg-[hsl(var(--color-bg-elevated))] rounded-xl shadow-xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))] flex-shrink-0">
-          <div>
-            <h2 id="live-preview-title" className="text-lg font-semibold text-[hsl(var(--color-text-primary))]">
-              Live Preview with Violation Highlights
-            </h2>
-            <p className="text-sm text-[hsl(var(--color-text-secondary))]">
-              Hover over highlighted areas to see violation details
-            </p>
-          </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            className="p-2 text-[hsl(var(--color-text-secondary))] hover:text-[hsl(var(--color-text-primary))] hover:bg-[hsl(var(--color-bg-surface))] rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
-            aria-label="Close live preview"
-          >
-            <span aria-hidden="true" className="text-xl">×</span>
-          </button>
+    <section className="bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))]">
+        <div>
+          <h2 id="live-preview-title" className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))]">
+            Live Preview with Violation Highlights
+          </h2>
+          <p className="text-sm text-[hsl(var(--color-text-secondary))] mt-1">
+            Hover highlighted elements to inspect the linked WCAG issue.
+          </p>
         </div>
 
-        {/* Iframe Container */}
-        <div className="flex-1 overflow-auto bg-white">
-          <iframe
-            ref={iframeRef}
-            srcDoc={iframeContent}
-            className="w-full h-full border-0"
-            title="Live preview with accessibility violations highlighted"
-            sandbox=""
-          />
-        </div>
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          className="px-3 py-1.5 text-sm font-medium text-[hsl(var(--color-text-primary))] bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--color-bg-base))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+          aria-expanded={!isCollapsed}
+          aria-controls="live-preview-content"
+        >
+          {isCollapsed ? 'Show Preview' : 'Hide Preview'}
+        </button>
+      </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-6 px-6 py-3 border-t border-[hsl(var(--color-border))] flex-shrink-0 bg-[hsl(var(--color-bg-surface))]">
-          <span className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">Violation severity:</span>
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 border-2 border-[#ef4444] rounded" />
-              <span className="text-[hsl(var(--color-text-secondary))]">Critical</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 border-2 border-[#f97316] rounded" />
-              <span className="text-[hsl(var(--color-text-secondary))]">Serious</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 border-2 border-[#eab308] rounded" />
-              <span className="text-[hsl(var(--color-text-secondary))]">Moderate</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 border-2 border-[#6b7280] rounded" />
-              <span className="text-[hsl(var(--color-text-secondary))]">Minor</span>
-            </div>
-          </div>
+      <div className="px-6 py-3 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))]">
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <span className="font-medium text-[hsl(var(--color-text-secondary))]">Violations:</span>
+          <span className="px-2 py-1 rounded-full border border-[#ef4444] text-[#ef4444]">Critical {severityCounts.critical}</span>
+          <span className="px-2 py-1 rounded-full border border-[#f97316] text-[#f97316]">Serious {severityCounts.serious}</span>
+          <span className="px-2 py-1 rounded-full border border-[#eab308] text-[#a16207]">Moderate {severityCounts.moderate}</span>
+          <span className="px-2 py-1 rounded-full border border-[#6b7280] text-[hsl(var(--color-text-secondary))]">Minor {severityCounts.minor}</span>
         </div>
       </div>
-    </div>
+
+      {!isCollapsed && (
+        <>
+          <div id="live-preview-content" className="h-[420px] lg:h-[520px] overflow-auto bg-white">
+            <iframe
+              srcDoc={iframeContent}
+              className="w-full h-full border-0"
+              title="Live preview with accessibility violations highlighted"
+              sandbox=""
+            />
+          </div>
+
+          <div className="flex items-center gap-6 px-6 py-3 border-t border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-surface))]">
+            <span className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">Violation severity:</span>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 border-2 border-[#ef4444] rounded" />
+                <span className="text-[hsl(var(--color-text-secondary))]">Critical</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 border-2 border-[#f97316] rounded" />
+                <span className="text-[hsl(var(--color-text-secondary))]">Serious</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 border-2 border-[#eab308] rounded" />
+                <span className="text-[hsl(var(--color-text-secondary))]">Moderate</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 border-2 border-[#6b7280] rounded" />
+                <span className="text-[hsl(var(--color-text-secondary))]">Minor</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </section>
   );
 }

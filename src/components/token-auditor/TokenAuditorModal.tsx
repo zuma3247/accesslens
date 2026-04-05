@@ -188,13 +188,13 @@ export function TokenAuditorModal({ isOpen, onClose }: TokenAuditorModalProps) {
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[hsl(var(--color-modal-overlay))] backdrop-blur-sm p-4"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="token-auditor-title"
     >
-      <div className="w-full max-w-4xl max-h-[90vh] bg-[hsl(var(--color-bg-elevated))] rounded-xl shadow-xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-4xl max-h-[90vh] bg-[hsl(var(--color-modal-bg))] border border-[hsl(var(--color-border-strong))] rounded-xl shadow-xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))] flex-shrink-0">
           <div className="flex items-center gap-3">

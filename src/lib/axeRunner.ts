@@ -2,37 +2,81 @@ import axe from 'axe-core';
 import type { AxeResults } from 'axe-core';
 
 /**
- * Parse HTML in an isolated Document via DOMParser (scripts do not run during parse),
- * then deep-import nodes into the live container. Avoids assigning raw user HTML to
- * innerHTML on a node attached to the main document.
+ * Parse HTML in an inert Document via DOMParser (scripts do not run during parse),
+ * then populate an isolated iframe document so audited styles do not leak into the
+ * host application.
  */
-function mountHtmlFragment(container: HTMLElement, htmlString: string): void {
+function populateAuditDocument(auditDocument: Document, htmlString: string, cssString?: string): void {
   const parsed = new DOMParser().parseFromString(htmlString, 'text/html');
+
+  auditDocument.open();
+  auditDocument.write('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body></body></html>');
+  auditDocument.close();
+
+  const headStyles = Array.from(parsed.head.querySelectorAll('style'));
+  for (const styleEl of headStyles) {
+    const importedStyle = auditDocument.createElement('style');
+    importedStyle.textContent = styleEl.textContent ?? '';
+    auditDocument.head.appendChild(importedStyle);
+  }
+
+  if (cssString?.trim()) {
+    const userStyle = auditDocument.createElement('style');
+    userStyle.textContent = cssString.trim();
+    auditDocument.head.appendChild(userStyle);
+  }
+
   const children = Array.from(parsed.body.childNodes);
   for (const node of children) {
-    container.appendChild(document.importNode(node, true));
+    auditDocument.body.appendChild(auditDocument.importNode(node, true));
   }
 }
 
-export async function runLiveAxeAudit(htmlString: string): Promise<AxeResults> {
-  // Mount snippet in a detached container (never visually rendered)
-  const container = document.createElement('div');
-  container.setAttribute('aria-hidden', 'true'); // hide from SR during audit
-  container.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
-  mountHtmlFragment(container, htmlString);
-  document.body.appendChild(container);
+function createAuditIframe(): HTMLIFrameElement {
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.tabIndex = -1;
+  iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;border:0;visibility:hidden';
+  document.body.appendChild(iframe);
+  return iframe;
+}
+
+function injectAxeIntoIframe(iframeWindow: Window & typeof globalThis & { axe?: typeof axe }, auditDocument: Document): typeof axe {
+  const script = auditDocument.createElement('script');
+  script.textContent = axe.source;
+  auditDocument.head.appendChild(script);
+
+  if (!iframeWindow.axe) {
+    throw new Error('Unable to initialize axe in the isolated audit frame.');
+  }
+
+  return iframeWindow.axe;
+}
+
+export async function runLiveAxeAudit(htmlString: string, cssString?: string): Promise<AxeResults> {
+  const iframe = createAuditIframe();
 
   try {
-    const results = await axe.run(container, {
+    const auditDocument = iframe.contentDocument;
+    const iframeWindow = iframe.contentWindow as (Window & typeof globalThis & { axe?: typeof axe }) | null;
+
+    if (!auditDocument || !iframeWindow) {
+      throw new Error('Unable to create an isolated audit frame.');
+    }
+
+    populateAuditDocument(auditDocument, htmlString, cssString);
+    const iframeAxe = injectAxeIntoIframe(iframeWindow, auditDocument);
+
+    const results = await iframeAxe.run(auditDocument, {
       runOnly: {
         type: 'tag',
         values: ['wcag2a', 'wcag2aa', 'wcag22aa'],
       },
       reporter: 'v2',
     });
+
     return results;
   } finally {
-    // Always remove the container, even if axe throws
-    document.body.removeChild(container);
+    iframe.remove();
   }
 }

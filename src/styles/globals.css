@@ -88,6 +88,10 @@
   --color-copied-bg: hsl(142 65% 95%);
   --color-copied-text: hsl(142 55% 28%);
 
+  /* Modal/Dialog Surface Colors */
+  --color-modal-bg: hsl(255 100% 100%);
+  --color-modal-overlay: hsl(220 16% 9% / 0.5);
+
   /* Code blocks */
   --color-code-bg: hsl(var(--slate-900));
   --color-code-text: hsl(var(--slate-50));
@@ -152,6 +156,10 @@
   --color-bg-surface: hsl(var(--slate-900));
   --color-bg-elevated: hsl(var(--slate-800));
   --color-bg-overlay: hsl(220 14% 14% / 0.88);
+
+  /* Modal/Dialog Surface Colors - lighter than bg-elevated for visibility */
+  --color-modal-bg: hsl(220 14% 24%);
+  --color-modal-overlay: hsl(220 16% 5% / 0.65);
 
   --color-border: hsl(var(--slate-700));
   --color-border-strong: hsl(var(--slate-600));

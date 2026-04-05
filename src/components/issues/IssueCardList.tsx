@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Issue, IssueSeverity, WcagPrinciple, SortMode, HeatmapFilter, ConfidenceLevel } from '@/types/audit.types';
 import { IssueCard } from './IssueCard';
 import { FilterBar } from './FilterBar';
-import { getConfidenceForRule, generateDismissalKey, dismissViolation, restoreViolation, type DismissalReason } from '@/lib/axiomConfidence';
+import { getConfidenceForRule, generateDismissalKey, dismissViolation, restoreViolation } from '@/lib/axiomConfidence';
 import { ChevronDown } from 'lucide-react';
 
 interface IssueCardListProps {
@@ -51,7 +51,7 @@ export function IssueCardList({
   }, [dismissedKeys, getIssueKey]);
 
   // Handle dismiss action
-  const handleDismiss = useCallback((issue: Issue, _reason: DismissalReason) => {
+  const handleDismiss = useCallback((issue: Issue) => {
     const key = getIssueKey(issue);
     dismissViolation(key);
     const newKeys = new Set(dismissedKeys);

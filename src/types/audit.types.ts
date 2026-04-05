@@ -147,6 +147,7 @@ export interface ImpairmentFilter {
 export interface AuditInput {
   mode: InputMode;
   value: string;
+  css?: string; // Optional CSS for HTML mode analysis
 }
 
 // ============================================

@@ -1,9 +1,24 @@
 import { useState } from 'react';
-import { Loader2, Sparkles, Lock } from 'lucide-react';
+import { Loader2, Sparkles, Lock, FileCode, Upload } from 'lucide-react';
 import type { InputMode, AuditInput } from '@/types/audit.types';
 import { ModeToggleTabs } from './ModeToggleTabs';
 import { QuickFillChips } from './QuickFillChips';
 import { HeroStatStrip } from './HeroStatStrip';
+
+const HTML_QUICK_FILLS = [
+  {
+    label: 'Low Contrast Card',
+    html: '<main><section class="card"><h1>Checkout</h1><p style="color:#9ca3af;background:#f3f4f6">Muted text on light gray background.</p><button>Pay now</button></section></main>',
+  },
+  {
+    label: 'Missing Form Labels',
+    html: '<form><input type="email" placeholder="Email" /><input type="password" placeholder="Password" /><button type="submit">Sign in</button></form>',
+  },
+  {
+    label: 'Image Without Alt',
+    html: '<article><h2>Product Spotlight</h2><img src="/sample-product.jpg"><p>Learn more about this product.</p></article>',
+  },
+];
 
 interface InputPanelProps {
   onAnalyze: (input: AuditInput) => void;
@@ -15,6 +30,7 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
   const [inputMode, setInputMode] = useState<InputMode>('url');
   const [urlValue, setUrlValue] = useState('');
   const [htmlValue, setHtmlValue] = useState('');
+  const [cssValue, setCssValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleModeChange = (mode: InputMode) => {
@@ -26,6 +42,36 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
     setUrlValue(url);
     setError(null);
     onAnalyze({ mode: 'url', value: url });
+  };
+
+  const handleHtmlQuickFill = (html: string) => {
+    setHtmlValue(html);
+    setError(null);
+  };
+
+  const handleHtmlFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isHtmlLike = /\.html?$|\.xhtml$/i.test(file.name) || file.type.includes('html');
+    if (!isHtmlLike) {
+      setError('Please upload an HTML file (.html or .htm).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setHtmlValue(reader.result);
+        setError(null);
+      }
+    };
+    reader.onerror = () => {
+      setError('Unable to read the uploaded HTML file. Please try another file.');
+    };
+    reader.readAsText(file);
+
+    e.currentTarget.value = '';
   };
 
   const handleAnalyze = () => {
@@ -50,7 +96,11 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
         setError('Please enter HTML content to analyze');
         return;
       }
-      onAnalyze({ mode: 'html', value: trimmedHtml });
+      const trimmedCss = cssValue.trim();
+      const input: AuditInput = trimmedCss
+        ? { mode: 'html', value: trimmedHtml, css: trimmedCss }
+        : { mode: 'html', value: trimmedHtml };
+      onAnalyze(input);
     }
   };
 
@@ -87,20 +137,82 @@ export function InputPanel({ onAnalyze, isLoading, disabled }: InputPanelProps) 
         )}
 
         {inputMode === 'html' && (
-          <div className="space-y-2" id="html-panel" role="tabpanel" aria-labelledby="html-tab">
-            <label htmlFor="html-input" className="block text-sm font-medium text-[hsl(var(--color-text-primary))]">
-              HTML Snippet
-            </label>
-            <textarea
-              id="html-input"
-              value={htmlValue}
-              onChange={(e) => setHtmlValue(e.target.value)}
-              disabled={isLoading || disabled}
-              rows={6}
-              placeholder="<!-- Paste any HTML fragment to audit it live -->"
-              aria-describedby={error ? 'input-error' : undefined}
-              className={`w-full px-4 py-3 bg-[hsl(var(--color-bg-elevated))] border rounded-lg text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-disabled))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))] disabled:opacity-50 disabled:cursor-not-allowed font-mono resize-y ${error ? 'border-[hsl(var(--color-error))]' : 'border-[hsl(var(--color-border))]'}`}
-            />
+          <div className="space-y-3" id="html-panel" role="tabpanel" aria-labelledby="html-tab">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor="html-input" className="block text-sm font-medium text-[hsl(var(--color-text-primary))]">
+                  HTML Snippet
+                </label>
+
+                <label
+                  htmlFor="html-file-input"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[hsl(var(--color-text-primary))] bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--color-bg-base))] cursor-pointer transition-colors"
+                >
+                  <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                  Upload HTML File
+                </label>
+                <input
+                  id="html-file-input"
+                  type="file"
+                  accept=".html,.htm,.xhtml,text/html,application/xhtml+xml"
+                  className="sr-only"
+                  onChange={handleHtmlFileUpload}
+                  disabled={isLoading || disabled}
+                />
+              </div>
+              <textarea
+                id="html-input"
+                value={htmlValue}
+                onChange={(e) => setHtmlValue(e.target.value)}
+                disabled={isLoading || disabled}
+                rows={6}
+                placeholder="<!-- Paste any HTML fragment to audit it live -->"
+                aria-describedby={error ? 'input-error' : undefined}
+                className={`w-full px-4 py-3 bg-[hsl(var(--color-bg-elevated))] border rounded-lg text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-disabled))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))] disabled:opacity-50 disabled:cursor-not-allowed font-mono resize-y ${error ? 'border-[hsl(var(--color-error))]' : 'border-[hsl(var(--color-border))]'}`}
+              />
+            </div>
+
+            {/* CSS Input */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="css-input" className="block text-sm font-medium text-[hsl(var(--color-text-secondary))]">
+                  <span className="flex items-center gap-1.5">
+                    <FileCode className="w-4 h-4" aria-hidden="true" />
+                    CSS (Optional)
+                  </span>
+                </label>
+                <span className="text-xs text-[hsl(var(--color-text-disabled))]">For contrast analysis</span>
+              </div>
+              <textarea
+                id="css-input"
+                value={cssValue}
+                onChange={(e) => setCssValue(e.target.value)}
+                disabled={isLoading || disabled}
+                rows={4}
+                placeholder="/* Paste CSS here to include in analysis (optional) */&#10;.my-class { color: #333; background: #fff; }"
+                className="w-full px-4 py-3 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-lg text-[hsl(var(--color-text-primary))] placeholder:text-[hsl(var(--color-text-disabled))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--indigo-400))] disabled:opacity-50 disabled:cursor-not-allowed font-mono resize-y text-sm"
+              />
+              <p className="text-xs text-[hsl(var(--color-text-secondary))]">
+                Tip: External stylesheets (&lt;link&gt;) cannot be loaded. Paste your CSS here for accurate color contrast checks.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-[hsl(var(--color-text-secondary))]">Try sample HTML snippets:</p>
+              <div className="flex flex-wrap gap-2">
+                {HTML_QUICK_FILLS.map(({ label, html }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => handleHtmlQuickFill(html)}
+                    disabled={isLoading || disabled}
+                    className="px-3 py-1.5 text-xs text-[hsl(var(--color-text-secondary))] bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-full hover:bg-[hsl(var(--color-bg-elevated))] hover:text-[hsl(var(--color-text-primary))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import type { AuditPayload, HeatmapGrid, Issue, HeatmapFilter } from '@/types/audit.types';
 import { useBatchCopy } from '@/hooks/useBatchCopy';
 import { ScoreRing } from '@/components/score/ScoreRing';
-import { TriagedScore } from '@/components/score/TriagedScore';
 import { LevelBreakdown } from '@/components/score/LevelBreakdown';
 import { IssueHeatmap } from '@/components/heatmap/IssueHeatmap';
 import { IssueCardList } from '@/components/issues/IssueCardList';
@@ -12,6 +11,7 @@ import { BatchPromptModal } from '@/components/prompt/BatchPromptModal';
 import { BeforeAfterPanel } from '@/components/before-after/BeforeAfterPanel';
 import { DemoDataBanner } from './DemoDataBanner';
 import { LivePreviewPanel } from '@/components/live-preview/LivePreviewPanel';
+import { TriagedScore } from '../score/TriagedScore';
 import { getDismissedViolations, generateDismissalKey } from '@/lib/axiomConfidence';
 
 interface ResultsDashboardProps {
@@ -26,7 +26,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
   const [beforeAfterIssue, setBeforeAfterIssue] = useState<Issue | null>(null);
   const [isBeforeAfterOpen, setIsBeforeAfterOpen] = useState(false);
   const [beforeAfterTriggerElement, setBeforeAfterTriggerElement] = useState<HTMLElement | null>(null);
-  const [isLivePreviewOpen, setIsLivePreviewOpen] = useState(false);
+  const [isLivePreviewCollapsed, setIsLivePreviewCollapsed] = useState(false);
   const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
   const closeTimeoutRef = useRef<number | null>(null);
   const { promptText } = useBatchCopy(payload);
@@ -108,6 +108,16 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
 
         {/* Center Panel - Heatmap and Issues */}
         <div className="lg:col-span-6 space-y-6">
+          {/* Live Preview - primary center focus for HTML mode */}
+          {payload.scanMode === 'html' && (
+            <LivePreviewPanel
+              htmlContent={payload.auditedInput}
+              issues={payload.issues}
+              isCollapsed={isLivePreviewCollapsed}
+              onToggleCollapsed={() => setIsLivePreviewCollapsed((prev) => !prev)}
+            />
+          )}
+
           {/* Heatmap */}
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
             <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))] mb-4">
@@ -134,19 +144,6 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             <div className="h-28 md:hidden" />
           </div>
 
-          {/* Live Preview Button - only for HTML mode */}
-          {payload.scanMode === 'html' && (
-            <div className="mb-4">
-              <button
-                type="button"
-                onClick={() => setIsLivePreviewOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] text-[hsl(var(--color-text-primary))] font-medium rounded-lg hover:bg-[hsl(var(--color-bg-surface))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
-              >
-                <span>View Live Preview with Violation Highlights</span>
-              </button>
-            </div>
-          )}
-
           {/* Issue List */}
           <IssueCardList
             issues={payload.issues}
@@ -171,14 +168,6 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
           </div>
         </div>
       </div>
-
-      {/* Live Preview Panel */}
-      <LivePreviewPanel
-        htmlContent={payload.auditedInput}
-        issues={payload.issues}
-        isOpen={isLivePreviewOpen}
-        onClose={() => setIsLivePreviewOpen(false)}
-      />
 
       {/* Batch Prompt Modal */}
       <BatchPromptModal

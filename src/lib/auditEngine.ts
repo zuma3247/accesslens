@@ -2,6 +2,7 @@ import type { AuditInput, AuditPayload } from '@/types/audit.types';
 import { getSeedForUrl } from './filterMatcher';
 import { runLiveAxeAudit } from './axeRunner';
 import { mapAxeResultToPayload } from './axeResultMapper';
+import { fetchUrlHtml } from './urlFetcher';
 import { sleep, generateId } from './utils';
 
 export async function runAudit(input: AuditInput): Promise<AuditPayload> {
@@ -14,14 +15,34 @@ export async function runAudit(input: AuditInput): Promise<AuditPayload> {
   }
 
   if (input.mode === 'html') {
-    const axeResults = await runLiveAxeAudit(input.value);
+    const axeResults = await runLiveAxeAudit(input.value, input.css);
     return {
       ...mapAxeResultToPayload(axeResults, input.value),
       scanMode: 'html',
     };
   }
 
-  // URL mode: load matching seed file
+  let html: string | null = null;
+
+  try {
+    const fetchResult = await fetchUrlHtml(input.value);
+    html = fetchResult.html;
+  } catch {
+    html = null;
+  }
+
+  if (html !== null) {
+    const axeResults = await runLiveAxeAudit(html);
+
+    return {
+      ...mapAxeResultToPayload(axeResults, input.value),
+      auditedInput: input.value,
+      source: 'live-axe',
+      isFallback: false,
+      scanMode: 'url',
+    };
+  }
+
   const { payload: seed, isFallback } = await getSeedForUrl(input.value);
 
   // Stamp a fresh ID and timestamp so repeated scans look like new audits
