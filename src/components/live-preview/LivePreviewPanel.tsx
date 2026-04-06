@@ -7,6 +7,9 @@ interface LivePreviewPanelProps {
   isCollapsed: boolean;
   onToggleCollapsed: () => void;
   isUrlContent?: boolean; // Whether this content is from a URL (needs different sandbox)
+  /** Controlled highlights toggle — omit to use internal state */
+  showHighlights?: boolean;
+  onShowHighlightsChange?: (value: boolean) => void;
 }
 
 function sanitizeHtmlForPreview(html: string): string {
@@ -164,8 +167,13 @@ export function LivePreviewPanel({
   isCollapsed,
   onToggleCollapsed,
   isUrlContent = false,
+  showHighlights: controlledHighlights,
+  onShowHighlightsChange,
 }: LivePreviewPanelProps) {
-  const [showHighlights, setShowHighlights] = useState(true);
+  const [internalHighlights, setInternalHighlights] = useState(true);
+  // Use controlled value when provided, otherwise fall back to internal state
+  const showHighlights = controlledHighlights ?? internalHighlights;
+  const setShowHighlights = onShowHighlightsChange ?? setInternalHighlights;
 
   // Generate iframe srcdoc — memoized to avoid recompute on every render
   const iframeContent = useMemo(
@@ -201,7 +209,7 @@ export function LivePreviewPanel({
           {!isCollapsed && (
             <button
               type="button"
-              onClick={() => setShowHighlights((prev) => !prev)}
+              onClick={() => setShowHighlights(!showHighlights)}
               className={`px-3 py-1.5 text-sm font-medium border rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] ${
                 showHighlights
                   ? 'text-white bg-[hsl(var(--indigo-500))] border-[hsl(var(--indigo-500))] hover:bg-[hsl(var(--indigo-600))]'

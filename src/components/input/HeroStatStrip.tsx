@@ -1,7 +1,7 @@
 export function HeroStatStrip() {
   const stats = [
     { value: '95.9%', label: 'of websites fail WCAG basics' },
-    { value: '57%', label: 'of violations caught automatically' },
+    { value: '~30–40%', label: 'of WCAG issues detectable by automation' },
     { value: '5,100+', label: 'ADA lawsuits filed in 2025' },
   ];
 

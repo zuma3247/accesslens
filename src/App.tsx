@@ -2,6 +2,7 @@ import { useAudit } from '@/hooks/useAudit';
 import { useTheme } from '@/hooks/useTheme';
 import { TopNav } from '@/components/layout/TopNav';
 import { InputPanel } from '@/components/input/InputPanel';
+import { LandingHero } from '@/components/input/LandingHero';
 import { ResultsDashboard } from '@/components/layout/ResultsDashboard';
 import { SkeletonDashboard } from '@/components/skeleton/SkeletonDashboard';
 import { SVGFilterDefs } from '@/components/emulation/SVGFilterDefs';
@@ -13,8 +14,9 @@ function App() {
   const { viewState, auditResult, heatmapGrid, error, runAudit, reset } = useAudit();
 
   const handleSkipToMain = () => {
-    const mainContent = document.getElementById('app-root');
-    mainContent?.focus();
+    // In idle state, jump to the scan form; in results state, jump to the main content area
+    const target = document.getElementById('main-input') ?? document.getElementById('app-root');
+    target?.focus();
   };
 
   return (
@@ -25,7 +27,7 @@ function App() {
 
         {/* Skip to main content link */}
         <a
-          href="#app-root"
+          href="#main-input"
           onClick={handleSkipToMain}
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[hsl(var(--color-bg-elevated))] focus:border focus:border-[hsl(var(--indigo-400))] focus:rounded-md focus:text-[hsl(var(--color-text-primary))] focus:font-medium focus:shadow-lg"
         >
@@ -60,6 +62,7 @@ function App() {
                 </div>
               )}
 
+              <LandingHero />
               <InputPanel
                 onAnalyze={runAudit}
                 isLoading={viewState === 'loading'}

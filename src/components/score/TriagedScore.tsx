@@ -85,7 +85,7 @@ export function TriagedScore({ issues, dismissedIssueIds, scanMode = 'unknown' }
             {showTooltip && (
               <div
                 role="tooltip"
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 text-xs text-[hsl(var(--color-text-inverse))] bg-[hsl(var(--slate-800))] dark:bg-[hsl(var(--slate-200))] dark:text-[hsl(var(--slate-900))] rounded-md shadow-lg z-10"
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 text-xs bg-[hsl(var(--slate-900))] text-[hsl(var(--slate-50))] rounded-md shadow-lg z-10"
               >
                 {tooltipText}
               </div>

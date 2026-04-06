@@ -21,10 +21,11 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
   const strokeDashoffset = CIRCUMFERENCE * (1 - score / 100);
 
   // Determine color based on score thresholds
+  // Use var(--score-*) directly — these tokens are already full color values in globals.css
   const getScoreColor = () => {
-    if (score >= 90) return 'hsl(var(--score-high))';
-    if (score >= 60) return 'hsl(var(--score-mid))';
-    return 'hsl(var(--score-low))';
+    if (score >= 90) return 'var(--score-high)';
+    if (score >= 60) return 'var(--score-mid)';
+    return 'var(--score-low)';
   };
 
   // Animate score counter
@@ -79,7 +80,7 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
         {showTooltip && tooltipText && (
           <div
             role="tooltip"
-            className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 text-xs font-medium text-[hsl(var(--color-text-inverse))] bg-[hsl(var(--slate-800))] dark:bg-[hsl(var(--slate-200))] dark:text-[hsl(var(--slate-900))] rounded-md shadow-md z-10"
+            className="absolute -top-12 left-1/2 -translate-x-1/2 max-w-xs whitespace-normal text-center px-3 py-1.5 text-xs font-medium bg-[hsl(var(--slate-900))] text-[hsl(var(--slate-50))] rounded-md shadow-md z-10"
           >
             {tooltipText}
           </div>
@@ -98,7 +99,7 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
           cy="120"
           r={RADIUS}
           fill="none"
-          stroke="hsl(var(--score-track))"
+          stroke="var(--score-track)"
           strokeWidth="16"
           strokeLinecap="butt"
         />
@@ -128,7 +129,7 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
           y="115"
           textAnchor="middle"
           className="text-4xl font-semibold"
-          fill="hsl(var(--color-text-primary))"
+          fill="var(--color-text-primary)"
         >
           {animatedScore}%
         </text>
@@ -139,7 +140,7 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
           y="138"
           textAnchor="middle"
           className="text-sm font-medium"
-          fill="hsl(var(--color-text-secondary))"
+          fill="var(--color-text-secondary)"
         >
           {grade === 'Fail' ? 'Fail' : grade}
         </text>
@@ -150,6 +151,28 @@ export function ScoreRing({ score, grade, isFallback, levelBreakdown }: ScoreRin
       <p className="mt-2 text-xs text-[hsl(var(--color-text-secondary))] tracking-[0.08em] uppercase">
         WCAG 2.2 Target: AA
       </p>
+
+      {/* Persistent level summary chip */}
+      {levelBreakdown && (
+        <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
+          {(['A', 'AA', 'AAA'] as const).map((level) => {
+            const entry = levelBreakdown[level];
+            const allPass = entry.failing === 0;
+            return (
+              <span
+                key={level}
+                className={`px-2 py-0.5 rounded-full font-medium border ${
+                  allPass
+                    ? 'border-[var(--score-high)] text-[var(--score-high)]'
+                    : 'border-[hsl(var(--color-border))] text-[hsl(var(--color-text-secondary))]'
+                }`}
+              >
+                {level}: {entry.passing}/{entry.total}
+              </span>
+            );
+          })}
+        </div>
+      )}
       
       {/* Demo data notice for URL scans using representative data */}
       {isFallback && (

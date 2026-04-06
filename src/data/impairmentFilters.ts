@@ -28,8 +28,8 @@ export const IMPAIRMENT_FILTERS: ImpairmentFilter[] = [
   {
     key: 'deuteranopia',
     label: 'Deuteranopia',
-    description: 'Green-weak color vision. Red and green appear similar. The most common form of color blindness.',
-    prevalence: '~5% of males',
+    description: 'Complete absence of green cone function. Red and green are indistinguishable. Distinct from deuteranomaly (reduced green sensitivity), which is more common.',
+    prevalence: '~1% of males (complete form)',
     filterId: 'filter-deuteranopia',
     svgFilter: `<filter id="filter-deuteranopia" x="0" y="0" width="100%" height="100%">
   <feColorMatrix type="matrix" values="
@@ -74,7 +74,7 @@ export const IMPAIRMENT_FILTERS: ImpairmentFilter[] = [
     key: 'macular',
     label: 'Macular Deg.',
     description: 'Age-related central vision loss. The center of the visual field is blurred or missing; peripheral vision remains.',
-    prevalence: '~11 million Americans over age 60',
+    prevalence: '~19.8M US adults 40+ (including early-stage, per recent population surveys)',
     filterId: 'filter-macular',
     svgFilter: null, // CSS implementation — see emulation.css
     cssClass: 'emulate-macular',
