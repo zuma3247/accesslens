@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import type { AuditPayload, HeatmapGrid, Issue, HeatmapFilter } from '@/types/audit.types';
 import { useBatchCopy } from '@/hooks/useBatchCopy';
 import { useResizableColumns } from '@/hooks/useResizableColumns';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { ScoreRing } from '@/components/score/ScoreRing';
 import { LevelBreakdown } from '@/components/score/LevelBreakdown';
 import { IssueHeatmap } from '@/components/heatmap/IssueHeatmap';
@@ -38,6 +39,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
   const [showHighlights, setShowHighlights] = useState(true);
   const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
 
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const scanMode = payload.scanMode || 'unknown';
   const hasLivePreview = payload.scanMode === 'html' || !!payload.fetchedHtml;
   const splitLayout = hasLivePreview && !isLivePreviewCollapsed && showHighlights;
@@ -129,7 +131,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
         {/* ── Left column: Score + Level Breakdown ── */}
         <div
           className="space-y-6 lg:flex-shrink-0 lg:pr-2 lg:self-start"
-          style={{ width: leftWidth } as React.CSSProperties}
+          style={isDesktop ? { width: leftWidth } as React.CSSProperties : undefined}
         >
           <div className="p-6 bg-[hsl(var(--color-bg-surface))] border border-[hsl(var(--color-border))] rounded-xl">
             <ScoreRing
@@ -175,15 +177,16 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
 
           {/* Copy All Button */}
           <div className="md:flex md:justify-end">
-            <div className="fixed bottom-20 left-0 right-0 p-4 bg-[hsl(var(--color-bg-surface))] border-t border-[hsl(var(--color-border))] md:static md:p-0 md:bg-transparent md:border-0 z-50 md:z-auto">
+            <div className="fixed bottom-0 left-0 right-0 p-3 bg-[hsl(var(--color-bg-surface))] border-t border-[hsl(var(--color-border))] md:static md:p-0 md:bg-transparent md:border-0 z-50 md:z-auto">
               <div className="flex justify-end max-w-7xl mx-auto md:max-w-none">
                 <CopyAllCriticalButton
                   payload={payload}
                   onModalOpen={() => setIsBatchModalOpen(true)}
+                  mobileFullWidth
                 />
               </div>
             </div>
-            <div className="h-28 md:hidden" />
+            <div className="h-20 md:hidden" />
           </div>
 
           <IssueCardList
@@ -197,6 +200,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             dismissedKeys={dismissedKeys}
             onDismiss={handleDismiss}
             onRestore={handleRestore}
+            isMobile={!isDesktop}
           />
         </div>
 
@@ -205,7 +209,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
 
         {/* ── Right column: Heatmap (split) + Issue Detail ── */}
         <div
-          className="space-y-6 lg:flex-shrink-0 lg:pl-2"
+          className="hidden lg:block space-y-6 lg:flex-shrink-0 lg:pl-2"
           style={{ width: rightWidth } as React.CSSProperties}
         >
           {/* Heatmap moves here when preview is visible with highlights on */}

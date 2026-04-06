@@ -89,7 +89,7 @@ export function EmulationWidget() {
   return (
     <div
       ref={widgetRef}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 z-[9999]"
+      className="fixed bottom-[4.5rem] right-3 md:bottom-6 md:right-6 z-[9999]"
     >
       <AnimatePresence mode="wait">
         {isExpanded ? (
@@ -99,7 +99,7 @@ export function EmulationWidget() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.15, ease: 'easeOut' }}
-            className="w-[280px] bg-[hsl(var(--color-bg-elevated))] backdrop-blur-xl border border-[hsl(var(--color-border))] rounded-xl shadow-xl"
+            className="w-[280px] bg-[var(--color-bg-elevated)] border border-[hsl(var(--color-border))] rounded-xl shadow-xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--color-border))]">
@@ -151,7 +151,7 @@ export function EmulationWidget() {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.12, ease: 'easeIn' }}
             onClick={handleOpen}
-            className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-full shadow-md hover:shadow-lg transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-elevated)] border border-[hsl(var(--color-border))] rounded-full shadow-md hover:shadow-lg transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
             aria-label="Open vision emulation panel"
           >
             <Eye className="w-4 h-4 text-[hsl(var(--color-text-secondary))]" aria-hidden="true" />

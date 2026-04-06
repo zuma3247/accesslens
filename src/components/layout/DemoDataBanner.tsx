@@ -46,12 +46,12 @@ export function DemoDataBanner({ payload }: DemoDataBannerProps) {
           className={`w-5 h-5 flex-shrink-0 mt-0.5 ${icon}`}
           aria-hidden="true"
         />
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           {variant === 'live' && (
             <>
               <p className="font-medium text-[hsl(var(--color-text-primary))]">
                 Live URL Scan — Results were generated from the actual page HTML for{' '}
-                <span className="font-semibold">{payload.auditedInput}</span>.
+                <span className="font-semibold break-all">{payload.auditedInput}</span>.
               </p>
               <p className="text-sm text-[hsl(var(--color-text-secondary))]">
                 Client-side scans may miss dynamic JavaScript-rendered content or externally loaded stylesheets.
@@ -72,7 +72,7 @@ export function DemoDataBanner({ payload }: DemoDataBannerProps) {
             <>
               <p className="font-medium text-[hsl(var(--color-text-primary))]">
                 Demo Data — This result is a representative example, not an analysis of{' '}
-                <span className="font-semibold">{payload.auditedInput}</span>.
+                <span className="font-semibold break-all">{payload.auditedInput}</span>.
               </p>
               <p className="text-sm text-[hsl(var(--color-text-secondary))]">
                 Live URL fetching was unavailable (usually due to CORS or network restrictions), so AccessLens used sample fallback data.

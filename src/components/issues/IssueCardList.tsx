@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { Issue, IssueSeverity, WcagPrinciple, SortMode, HeatmapFilter, ConfidenceLevel } from '@/types/audit.types';
-import type { DismissalReason } from '@/lib/axiomConfidence';
 import { IssueCard } from './IssueCard';
+import { IssueDetail } from './IssueDetail';
 import { FilterBar } from './FilterBar';
 import { getConfidenceForRule, generateDismissalKey } from '@/lib/axiomConfidence';
+import type { DismissalReason } from '@/lib/axiomConfidence';
 import { ChevronDown } from 'lucide-react';
 
 interface IssueCardListProps {
@@ -17,6 +18,7 @@ interface IssueCardListProps {
   dismissedKeys: Set<string>;
   onDismiss: (issue: Issue, reason: DismissalReason) => void;
   onRestore: (issue: Issue) => void;
+  isMobile?: boolean;
 }
 
 export function IssueCardList({
@@ -25,8 +27,12 @@ export function IssueCardList({
   onClearHeatmapFilter,
   selectedIssue,
   onSelectIssue,
+  onOpenBeforeAfter,
   scanMode = 'unknown',
   dismissedKeys,
+  onDismiss,
+  onRestore,
+  isMobile = false,
 }: IssueCardListProps) {
   const [severityFilter, setSeverityFilter] = useState<IssueSeverity | null>(null);
   const [principleFilter, setPrincipleFilter] = useState<WcagPrinciple | null>(null);
@@ -108,16 +114,32 @@ export function IssueCardList({
       )}
 
       <div className="space-y-3" role="list" aria-label="Accessibility issues">
-        {filteredActiveIssues.map((issue) => (
-          <div key={issue.id} role="listitem">
-            <IssueCard
-              issue={issue}
-              onSelect={() => onSelectIssue(selectedIssue?.id === issue.id ? null : issue)}
-              isSelected={selectedIssue?.id === issue.id}
-              isDismissed={false}
-            />
-          </div>
-        ))}
+        {filteredActiveIssues.map((issue) => {
+          const isSelected = selectedIssue?.id === issue.id;
+          return (
+            <div key={issue.id} role="listitem">
+              <IssueCard
+                issue={issue}
+                onSelect={() => onSelectIssue(isSelected ? null : issue)}
+                isSelected={isSelected}
+                isDismissed={false}
+                isMobile={isMobile}
+              />
+              {isMobile && isSelected && (
+                <div className="border border-t-0 border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-surface))] rounded-b-lg overflow-hidden animate-accordion-down">
+                  <IssueDetail
+                    issue={issue}
+                    onOpenBeforeAfter={onOpenBeforeAfter}
+                    scanMode={scanMode}
+                    dismissedKeys={dismissedKeys}
+                    onDismiss={onDismiss}
+                    onRestore={onRestore}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {filteredActiveIssues.length === 0 && activeIssues.length > 0 && (
@@ -151,16 +173,32 @@ export function IssueCardList({
             />
           </summary>
           <div className="p-4 space-y-3 border-t border-[hsl(var(--color-border))]">
-            {dismissedIssues.map((issue) => (
-              <div key={issue.id} role="listitem">
-                <IssueCard
-                  issue={issue}
-                  onSelect={() => onSelectIssue(selectedIssue?.id === issue.id ? null : issue)}
-                  isSelected={selectedIssue?.id === issue.id}
-                  isDismissed={true}
-                />
-              </div>
-            ))}
+            {dismissedIssues.map((issue) => {
+              const isSelected = selectedIssue?.id === issue.id;
+              return (
+                <div key={issue.id} role="listitem">
+                  <IssueCard
+                    issue={issue}
+                    onSelect={() => onSelectIssue(isSelected ? null : issue)}
+                    isSelected={isSelected}
+                    isDismissed={true}
+                    isMobile={isMobile}
+                  />
+                  {isMobile && isSelected && (
+                    <div className="border border-t-0 border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-surface))] rounded-b-lg overflow-hidden animate-accordion-down">
+                      <IssueDetail
+                        issue={issue}
+                        onOpenBeforeAfter={onOpenBeforeAfter}
+                        scanMode={scanMode}
+                        dismissedKeys={dismissedKeys}
+                        onDismiss={onDismiss}
+                        onRestore={onRestore}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </details>
       )}

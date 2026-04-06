@@ -9,9 +9,10 @@ interface IssueCardProps {
   onSelect: () => void;
   isSelected?: boolean;
   isDismissed?: boolean;
+  isMobile?: boolean;
 }
 
-export function IssueCard({ issue, onSelect, isSelected, isDismissed }: IssueCardProps) {
+export function IssueCard({ issue, onSelect, isSelected, isDismissed, isMobile }: IssueCardProps) {
   const confidence = getConfidenceForRule(issue.ruleId);
 
   const ConfidenceIcon = {
@@ -42,6 +43,7 @@ export function IssueCard({ issue, onSelect, isSelected, isDismissed }: IssueCar
         ${borderColorMap[issue.severity]} border-l-[3px]
         ${isSelected ? 'ring-2 ring-[hsl(var(--indigo-400))]' : ''}
         ${isDismissed ? 'opacity-50' : ''}
+        ${isMobile && isSelected ? 'rounded-b-none ring-0 border-b-0' : ''}
       `}
     >
       <button
@@ -74,7 +76,7 @@ export function IssueCard({ issue, onSelect, isSelected, isDismissed }: IssueCar
         </div>
 
         <ChevronRight
-          className={`w-4 h-4 flex-shrink-0 transition-colors ${isSelected ? 'text-[hsl(var(--indigo-500))]' : 'text-[hsl(var(--color-text-secondary))]'}`}
+          className={`w-4 h-4 flex-shrink-0 transition-all ${isSelected ? 'text-[hsl(var(--indigo-500))]' : 'text-[hsl(var(--color-text-secondary))]'} ${isMobile && isSelected ? 'rotate-90' : ''}`}
           aria-hidden="true"
         />
       </button>

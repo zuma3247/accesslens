@@ -59,8 +59,15 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
   };
 
   return (
-    <div className="w-full">
-      <table className="w-full border-collapse" role="grid">
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-collapse table-fixed" role="grid">
+        <colgroup>
+          <col className="w-[30%]" />
+          <col className="w-[17.5%]" />
+          <col className="w-[17.5%]" />
+          <col className="w-[17.5%]" />
+          <col className="w-[17.5%]" />
+        </colgroup>
         <caption className="sr-only">
           Issue severity heatmap by WCAG principle and severity level
         </caption>
@@ -71,7 +78,7 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
               <th
                 key={severity}
                 scope="col"
-                className="pb-2 text-xs font-medium text-[hsl(var(--color-text-secondary))] uppercase tracking-[0.08em] text-center"
+                className="pb-2 text-xs font-medium text-[hsl(var(--color-text-secondary))] uppercase tracking-[0.08em] text-center truncate"
               >
                 {severityLabels[severity]}
               </th>
@@ -83,7 +90,8 @@ export function IssueHeatmap({ grid, onCellClick, activeFilter }: IssueHeatmapPr
             <tr key={principle}>
               <th
                 scope="row"
-                className="pr-3 py-2 text-xs font-medium text-[hsl(var(--color-text-secondary))] uppercase tracking-[0.08em] text-left"
+                className="pr-3 py-2 text-xs font-medium text-[hsl(var(--color-text-secondary))] uppercase tracking-[0.08em] text-left truncate overflow-hidden"
+                title={principleLabels[principle]}
               >
                 {principleLabels[principle]}
               </th>

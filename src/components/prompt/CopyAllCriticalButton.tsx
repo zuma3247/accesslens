@@ -5,9 +5,10 @@ import type { AuditPayload } from '@/types/audit.types';
 interface CopyAllCriticalButtonProps {
   payload: AuditPayload;
   onModalOpen: () => void;
+  mobileFullWidth?: boolean;
 }
 
-export function CopyAllCriticalButton({ payload, onModalOpen }: CopyAllCriticalButtonProps) {
+export function CopyAllCriticalButton({ payload, onModalOpen, mobileFullWidth }: CopyAllCriticalButtonProps) {
   const { copy, copied } = useBatchCopy(payload);
 
   const criticalCount = payload.issues.filter(i => i.severity === 'critical').length;
@@ -38,11 +39,12 @@ export function CopyAllCriticalButton({ payload, onModalOpen }: CopyAllCriticalB
       onClick={handleClick}
       disabled={copied}
       className={`
-        inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md
+        inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md
         transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]
+        ${mobileFullWidth ? 'w-full md:w-auto' : ''}
         ${copied
           ? 'bg-[hsl(var(--color-copied-bg))] text-[hsl(var(--color-copied-text))]'
-          : 'bg-[hsl(var(--color-copy-btn-bg))] text-[hsl(var(--color-text-primary))] border border-[hsl(var(--color-border))] hover:bg-[hsl(var(--color-copy-btn-hover))]'
+          : 'bg-[hsl(var(--indigo-600))] text-white hover:bg-[hsl(var(--indigo-700))]'
         }
       `}
       aria-live="polite"
@@ -56,7 +58,7 @@ export function CopyAllCriticalButton({ payload, onModalOpen }: CopyAllCriticalB
         <>
           <ClipboardList className="w-4 h-4" aria-hidden="true" />
           <span>Copy All Critical Fixes</span>
-          <span className="ml-1 px-1.5 py-0.5 text-xs bg-[hsl(var(--indigo-100))] text-[hsl(var(--indigo-700))] rounded-full">
+          <span className="ml-1 px-1.5 py-0.5 text-xs bg-white/20 text-white rounded-full">
             {criticalCount}
           </span>
         </>
