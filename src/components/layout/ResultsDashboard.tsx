@@ -65,7 +65,7 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
     };
   }, []);
 
-  const handleDismiss = useCallback((issue: Issue, reason: DismissalReason) => {
+  const handleDismiss = useCallback((issue: Issue, _reason: DismissalReason) => {
     const key = generateDismissalKey(scanMode, issue.ruleId, issue.id);
     dismissViolation(key);
     setDismissedKeys((prev) => new Set([...prev, key]));
@@ -195,7 +195,6 @@ export function ResultsDashboard({ payload, heatmapGrid }: ResultsDashboardProps
             onOpenBeforeAfter={handleOpenBeforeAfter}
             scanMode={scanMode}
             dismissedKeys={dismissedKeys}
-            onDismissedKeysChange={setDismissedKeys}
             onDismiss={handleDismiss}
             onRestore={handleRestore}
           />

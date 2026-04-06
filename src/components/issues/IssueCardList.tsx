@@ -15,7 +15,6 @@ interface IssueCardListProps {
   onOpenBeforeAfter: ((issue: Issue, triggerElement?: HTMLElement) => void) | undefined;
   scanMode?: string;
   dismissedKeys: Set<string>;
-  onDismissedKeysChange: (keys: Set<string>) => void;
   onDismiss: (issue: Issue, reason: DismissalReason) => void;
   onRestore: (issue: Issue) => void;
 }
@@ -28,7 +27,6 @@ export function IssueCardList({
   onSelectIssue,
   scanMode = 'unknown',
   dismissedKeys,
-  onDismissedKeysChange,
 }: IssueCardListProps) {
   const [severityFilter, setSeverityFilter] = useState<IssueSeverity | null>(null);
   const [principleFilter, setPrincipleFilter] = useState<WcagPrinciple | null>(null);
