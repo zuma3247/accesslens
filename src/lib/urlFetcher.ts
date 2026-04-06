@@ -44,8 +44,10 @@ async function fetchDirect(url: string): Promise<UrlFetchResult> {
     throw new Error('Fetched content did not look like HTML');
   }
 
-  // Inject base tag to resolve relative assets to the original domain
-  const baseHref = new URL(finalUrl).origin;
+  // Inject base tag to resolve relative assets against the original directory path
+  // (not just the origin — relative URLs like "img/hero.jpg" need the full path prefix)
+  const parsedFinalUrl = new URL(finalUrl);
+  const baseHref = parsedFinalUrl.href.substring(0, parsedFinalUrl.href.lastIndexOf('/') + 1) || parsedFinalUrl.origin;
   const htmlWithBase = injectBaseTag(html, baseHref);
 
   return { html: htmlWithBase, finalUrl };

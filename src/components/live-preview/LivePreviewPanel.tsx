@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Issue } from '@/types/audit.types';
 
 interface LivePreviewPanelProps {
@@ -110,10 +110,12 @@ function buildHighlightCss(issues: Issue[]): string {
 
     rules.push(`
       ${selector} {
-        outline: 3px solid ${colors.border} !important;
+        outline: 2px dashed ${colors.border} !important;
         outline-offset: 2px !important;
-        background-color: ${colors.bg} !important;
         position: relative !important;
+      }
+      ${selector}:hover {
+        background-color: ${colors.bg} !important;
       }
       ${selector}:hover::after {
         content: '${description}';
@@ -139,24 +141,21 @@ function buildHighlightCss(issues: Issue[]): string {
   return rules.join('\n');
 }
 
-// Generate the iframe HTML with CSS-only highlights (no scripts)
-function generateIframeContent(html: string, issues: Issue[]): string {
+// Generate the iframe HTML with CSS-only highlights (no scripts).
+// For URL content (which already has <html>/<head>/<body>), inject the highlight
+// <style> into the existing <head> to preserve <base>, <link>, and <meta> tags.
+function generateIframeContent(html: string, issues: Issue[], showHighlights: boolean): string {
   const safeHtml = sanitizeHtmlForPreview(html);
-  const highlightCss = buildHighlightCss(issues);
+  const highlightCss = showHighlights ? buildHighlightCss(issues) : '';
+  const styleTag = `<style data-accesslens-highlights>${highlightCss}</style>`;
 
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { position: relative; margin: 0; }
-    ${highlightCss}
-  </style>
-</head>
-<body>
-  ${safeHtml}
-</body>
-</html>`;
+  // Inject into existing <head> — preserves <base>, <link>, <meta viewport>, etc.
+  if (/<head(\s[^>]*)?>/i.test(safeHtml)) {
+    return safeHtml.replace(/<head(\s[^>]*)?>/i, `$&\n${styleTag}`);
+  }
+
+  // Fallback for HTML snippets without <head>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>${safeHtml}</body></html>`;
 }
 
 export function LivePreviewPanel({
@@ -166,11 +165,12 @@ export function LivePreviewPanel({
   onToggleCollapsed,
   isUrlContent = false,
 }: LivePreviewPanelProps) {
+  const [showHighlights, setShowHighlights] = useState(true);
 
   // Generate iframe srcdoc — memoized to avoid recompute on every render
   const iframeContent = useMemo(
-    () => generateIframeContent(htmlContent, issues),
-    [htmlContent, issues],
+    () => generateIframeContent(htmlContent, issues, showHighlights),
+    [htmlContent, issues, showHighlights],
   );
 
   const severityCounts = useMemo(
@@ -188,33 +188,53 @@ export function LivePreviewPanel({
       <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--color-border))]">
         <div>
           <h2 id="live-preview-title" className="text-sm font-semibold uppercase tracking-[0.08em] text-[hsl(var(--color-text-secondary))]">
-            Live Preview with Violation Highlights
+            Live Preview{showHighlights ? ' with Violation Highlights' : ''}
           </h2>
           <p className="text-sm text-[hsl(var(--color-text-secondary))] mt-1">
-            Hover highlighted elements to inspect the linked WCAG issue.
+            {showHighlights
+              ? 'Hover highlighted elements to inspect the linked WCAG issue.'
+              : 'Showing the page as it appears in a browser.'}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          className="px-3 py-1.5 text-sm font-medium text-[hsl(var(--color-text-primary))] bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--color-bg-base))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
-          aria-expanded={!isCollapsed}
-          aria-controls="live-preview-content"
-        >
-          {isCollapsed ? 'Show Preview' : 'Hide Preview'}
-        </button>
-      </div>
-
-      <div className="px-6 py-3 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))]">
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span className="font-medium text-[hsl(var(--color-text-secondary))]">Violations:</span>
-          <span className="px-2 py-1 rounded-full border border-[#ef4444] text-[#ef4444]">Critical {severityCounts.critical}</span>
-          <span className="px-2 py-1 rounded-full border border-[#f97316] text-[#f97316]">Serious {severityCounts.serious}</span>
-          <span className="px-2 py-1 rounded-full border border-[#eab308] text-[#a16207]">Moderate {severityCounts.moderate}</span>
-          <span className="px-2 py-1 rounded-full border border-[#6b7280] text-[hsl(var(--color-text-secondary))]">Minor {severityCounts.minor}</span>
+        <div className="flex items-center gap-2">
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={() => setShowHighlights((prev) => !prev)}
+              className={`px-3 py-1.5 text-sm font-medium border rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))] ${
+                showHighlights
+                  ? 'text-white bg-[hsl(var(--indigo-500))] border-[hsl(var(--indigo-500))] hover:bg-[hsl(var(--indigo-600))]'
+                  : 'text-[hsl(var(--color-text-primary))] bg-[hsl(var(--color-bg-elevated))] border-[hsl(var(--color-border))] hover:bg-[hsl(var(--color-bg-base))]'
+              }`}
+              aria-pressed={showHighlights}
+            >
+              {showHighlights ? 'Hide Highlights' : 'Show Highlights'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            className="px-3 py-1.5 text-sm font-medium text-[hsl(var(--color-text-primary))] bg-[hsl(var(--color-bg-elevated))] border border-[hsl(var(--color-border))] rounded-md hover:bg-[hsl(var(--color-bg-base))] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--indigo-400))]"
+            aria-expanded={!isCollapsed}
+            aria-controls="live-preview-content"
+          >
+            {isCollapsed ? 'Show Preview' : 'Hide Preview'}
+          </button>
         </div>
       </div>
+
+      {showHighlights && (
+        <div className="px-6 py-3 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-elevated))]">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <span className="font-medium text-[hsl(var(--color-text-secondary))]">Violations:</span>
+            <span className="px-2 py-1 rounded-full border border-[#ef4444] text-[#ef4444]">Critical {severityCounts.critical}</span>
+            <span className="px-2 py-1 rounded-full border border-[#f97316] text-[#f97316]">Serious {severityCounts.serious}</span>
+            <span className="px-2 py-1 rounded-full border border-[#eab308] text-[#a16207]">Moderate {severityCounts.moderate}</span>
+            <span className="px-2 py-1 rounded-full border border-[#6b7280] text-[hsl(var(--color-text-secondary))]">Minor {severityCounts.minor}</span>
+          </div>
+        </div>
+      )}
 
       {!isCollapsed && (
         <>
@@ -222,32 +242,34 @@ export function LivePreviewPanel({
             <iframe
               srcDoc={iframeContent}
               className="w-full h-full border-0"
-              title="Live preview with accessibility violations highlighted"
+              title={showHighlights ? 'Live preview with accessibility violations highlighted' : 'Live preview of audited page'}
               sandbox={isUrlContent ? "allow-same-origin" : ""}
             />
           </div>
 
-          <div className="flex items-center gap-6 px-6 py-3 border-t border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-surface))]">
-            <span className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">Violation severity:</span>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 border-2 border-[#ef4444] rounded" />
-                <span className="text-[hsl(var(--color-text-secondary))]">Critical</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 border-2 border-[#f97316] rounded" />
-                <span className="text-[hsl(var(--color-text-secondary))]">Serious</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 border-2 border-[#eab308] rounded" />
-                <span className="text-[hsl(var(--color-text-secondary))]">Moderate</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 border-2 border-[#6b7280] rounded" />
-                <span className="text-[hsl(var(--color-text-secondary))]">Minor</span>
+          {showHighlights && (
+            <div className="flex items-center gap-6 px-6 py-3 border-t border-[hsl(var(--color-border))] bg-[hsl(var(--color-bg-surface))]">
+              <span className="text-sm font-medium text-[hsl(var(--color-text-secondary))]">Violation severity:</span>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 border-2 border-dashed border-[#ef4444] rounded" />
+                  <span className="text-[hsl(var(--color-text-secondary))]">Critical</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 border-2 border-dashed border-[#f97316] rounded" />
+                  <span className="text-[hsl(var(--color-text-secondary))]">Serious</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 border-2 border-dashed border-[#eab308] rounded" />
+                  <span className="text-[hsl(var(--color-text-secondary))]">Moderate</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-4 h-4 border-2 border-dashed border-[#6b7280] rounded" />
+                  <span className="text-[hsl(var(--color-text-secondary))]">Minor</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </section>
